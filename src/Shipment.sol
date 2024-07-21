@@ -34,6 +34,7 @@ contract Shipment {
     /// @param _location Location of the shipment
     /// @return The ID of the newly created shipment
     function createShipment(string memory _deliveryName, string memory _location) public returns (uint) {
+        require(msg.sender == manager, "Only the manager can create a shipment"); // Access control
         shipmentCount++;
         uint shipmentId = shipmentCount; // Use a simple incrementing ID
         shipments[shipmentId] = ShipmentDetails(shipmentId, _deliveryName, _location, "", 0);
@@ -47,6 +48,9 @@ contract Shipment {
     function moveShipment(uint _shipmentId, uint _seconds, string memory _targetLocation) public {
         require(msg.sender == manager, "Only the manager can move the shipment"); // Access control
         require(_shipmentId > 0 && _shipmentId <= shipmentCount, "Shipment ID is invalid");
+
+        uint temp_c = 20; // Hard-coded temperature value for this example
+        require(temp_c >= 15 && temp_c <= 25, "Temperature is not suitable for departure");
 
         ShipmentDetails storage shipment = shipments[_shipmentId];
         shipment.targetLocation = _targetLocation;
