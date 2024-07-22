@@ -18,7 +18,6 @@ contract Product {
     string public sku; // Stock-keeping unit for the product
     string public name; // Name of the product
     string public description; // Description of the product
-    uint public quantity; // Quantity of the product being sold/delivered
     uint public productionDate; // The date when the product is produced in UNIX
     uint public expiryDate; // The date when the product is expired in UNIX
     WeatherCondition public latestWeatherCondition; // Last recorded weather condition at the last transit point
@@ -27,14 +26,12 @@ contract Product {
     /// @param _sku stock keeping unit
     /// @param _name name of the product
     /// @param _description description of the product
-    /// @param _quantity quantity to sell the product
     /// @param _productionDate date the product is produced in UNIX
     /// @param _expiryDate date the product is expired in UNIX
     constructor(
         string memory _sku,
         string memory _name,
         string memory _description,
-        uint _quantity,
         uint _productionDate,
         uint _expiryDate
     ) {
@@ -42,7 +39,6 @@ contract Product {
         sku = _sku;
         name = _name;
         description = _description;
-        quantity = _quantity;
         productionDate = _productionDate;
         expiryDate = _expiryDate;
     }
