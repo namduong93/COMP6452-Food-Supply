@@ -25,21 +25,21 @@ contract Product is AccessControl {
     WeatherCondition latestWeatherCondition; // Last recorded weather condition at the last transit point
 
     /// @notice constructor to create a product
-    /// @param _supplier supplier/manager of the product
+    /// @param _manager manager of the product
     /// @param _sku stock keeping unit
     /// @param _name name of the product
     /// @param _description description of the product
     /// @param _productionDate date the product is produced in UNIX
     /// @param _expiryDate date the product is expired in UNIX
     constructor(
-        address _supplier,
+        address _manager,
         string memory _sku,
         string memory _name,
         string memory _description,
         uint256 _quantity,
         uint256 _productionDate,
         uint256 _expiryDate
-    ) AccessControl(_supplier) {
+    ) AccessControl(_manager) {
         sku = _sku;
         name = _name;
         description = _description;
@@ -49,7 +49,6 @@ contract Product is AccessControl {
     }
 
     /// @notice Get the details of the product
-    /// @return supplier/manager of the product
     /// @return stock keeping unit
     /// @return name of the product
     /// @return description of the product
@@ -61,7 +60,6 @@ contract Product is AccessControl {
         public
         view
         returns (
-            address,
             string memory,
             string memory,
             string memory,
@@ -72,7 +70,6 @@ contract Product is AccessControl {
         )
     {
         return (
-            manager,
             sku,
             name,
             description,

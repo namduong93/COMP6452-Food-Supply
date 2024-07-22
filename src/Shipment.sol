@@ -9,41 +9,61 @@ import "./Product.sol";
 /// @author
 
 contract Shipment is AccessControl {
+    // Shipment status
+    enum ShipmentStatus {
+        PREPARING,
+        SHIPPING,
+        DELIVERED,
+        VERIFIED
+    }
+
     string shipmentCode; // Code/Identifier for the shipment
     address productAddress; // Address to a deployed contract for a Product with all its details
-    string currentLocation; // Current location of the shipment
-    string targetLocation; // Target location to move to
-    uint256 moveTimestamp; // Timestamp in seconds when the location should change
+    uint256 currentLocation; // Current location of the shipment expressed as an index
+    string[] locations; // Starting point, delivery points, and final destination for the shipment
+    ShipmentStatus status; // Current status of the shipment
+    uint256 moveTimestamp; // Timestamp in seconds when the shipment should arrive at the next location
 
     // Define an event to be emitted when a shipment's location is updated
     event LocationUpdated(string newLocation);
 
+    // @notice custom error indicating that the shipment has been delivered
+    error OrderDelivered(ShipmentStatus status);
+
+    // @notice check whether the shipment has not been succesfully delivered
+    modifier notDelivered() {
+        if (status == ShipmentStatus.DELIVERED || status == ShipmentStatus.VERIFIED) {
+            revert OrderDelivered(status);
+        }
+        _;
+    }
+
     /// @notice constructor to create a new shipment
-    /// @param _shipper shipper of the shipment
+    /// @param _manager manager of the shipment
     /// @param _shipmentCode code for the shipment
     /// @param _productAddress address of the product being shipped
-    /// @param _currentLocation starting location of the shipment
-    /// @param _targetLocation target location/destination for the shipment
+    /// @param _locations starting point, delivery points, and final destination for the shipment
     constructor(
-        address _shipper,
+        address _manager,
         string memory _shipmentCode,
         address _productAddress,
-        string memory _currentLocation,
-        string memory _targetLocation
-    ) AccessControl(_shipper) {
+        string[] memory _locations
+    ) AccessControl(_manager) {
         shipmentCode = _shipmentCode;
         productAddress = _productAddress;
-        currentLocation = _currentLocation;
-        targetLocation = _targetLocation;
-        moveTimestamp = block.timestamp;
+        locations = _locations;
+        currentLocation = 0; // Starting point so index 0
+        status = ShipmentStatus.PREPARING;
+        moveTimestamp = 0; // 0 also means the shipment is not being shipped so there is no "expected" arrive time
     }
 
     /// @notice Get the details of the location of a shipment
-    /// @return code for the shipment
-    /// @return address of the contract for the product
-    /// @return current location of the shipment
-    /// @return target location/destination for the shipment
-    //  @return most recent time when the location is changed
+    /// @return _shipmentCode code for the shipment
+    /// @return _productAddress address of the contract for the product
+    /// @return _currentLocation current location of the shipment
+    /// @return _locations starting point, delivery points, and final destination for the shipment
+    /// @return _status current status of shipment
+    //  @return _moveTimestamp time at which the shipment arrives at the next location
     function getShipmentDetails()
         public
         view
@@ -51,6 +71,7 @@ contract Shipment is AccessControl {
             string memory,
             address,
             string memory,
+            string[] memory,
             string memory,
             uint256
         )
@@ -58,18 +79,19 @@ contract Shipment is AccessControl {
         return (
             shipmentCode,
             productAddress,
-            currentLocation,
-            targetLocation,
+            locations[currentLocation],
+            locations,
+            printShipmentStatus(status),
             moveTimestamp
         );
     }
 
     /// @notice Move the shipment to a new location after a specified number of seconds
     /// @param _seconds Number of seconds after which the location should change
-    /// @param _targetLocation Target location to move to
-    function moveShipment(uint256 _seconds, string memory _targetLocation)
+    function moveShipment(uint256 _seconds)
         public
         onlyManager
+        notDelivered
     {
         uint256 temp_c = 20; // Hard-coded temperature value for this example
         require(
@@ -77,20 +99,36 @@ contract Shipment is AccessControl {
             "Temperature is not suitable for departure"
         );
 
-        targetLocation = _targetLocation;
+        status = ShipmentStatus.SHIPPING;
         moveTimestamp = block.timestamp + _seconds; // Add the delay in seconds to the current timestamp
 
-        // Emit event to log the update
-        emit LocationUpdated(currentLocation);
+        emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
     }
 
     /// @notice Check if the location should be updated and perform the update if necessary
-    function updateShipmentLocation() public {
+    function updateShipmentLocation() public notDelivered {
         if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
-            currentLocation = targetLocation;
-            targetLocation = ""; // Clear target location after update
+            // Move current location to the next one
+            currentLocation++;
+
+            if (currentLocation == locations.length - 1) {
+                status = ShipmentStatus.DELIVERED;
+            } else {
+                status = ShipmentStatus.PREPARING;
+            }
+
             moveTimestamp = 0; // Reset timestamp
-            emit LocationUpdated(currentLocation); // Emit event
+            
+            emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
         }
+    }
+
+    // @notice Helper function to get the string representation of the status
+    function printShipmentStatus(ShipmentStatus _status) public pure returns (string memory) {
+        if (_status == ShipmentStatus.PREPARING) return "Preparing";
+        if (_status == ShipmentStatus.SHIPPING) return "Shipping";
+        if (_status == ShipmentStatus.DELIVERED) return "Delivered";
+        if (_status == ShipmentStatus.VERIFIED) return "Verified";
+        return "";
     }
 }

@@ -25,21 +25,18 @@ contract ShipmentFactory is AccessControl {
     /// @notice create a new shipment and log its contract into the registry
     /// @param _shipmentCode code for the shipment
     /// @param _productAddress address of the product being shipped
-    /// @param _currentLocation starting location of the shipment
-    /// @param _targetLocation target location/destination for the shipment
+    /// @param _locations starting point, delivery points, and final destination for the shipment
     /// @return The address for the contract of the new shipment
     function createShipment(
         string memory _shipmentCode,
         address _productAddress,
-        string memory _currentLocation,
-        string memory _targetLocation
+        string[] memory _locations
     ) public onlyManager returns (address) {
         Shipment newShipment = new Shipment(
             msg.sender,
             _shipmentCode,
             _productAddress,
-            _currentLocation,
-            _targetLocation
+            _locations
         );
 
         registry.registerShipment(address(newShipment), _shipmentCode);
