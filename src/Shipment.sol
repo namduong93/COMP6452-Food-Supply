@@ -9,6 +9,7 @@ import "./Product.sol";
 /// @author
 
 contract Shipment is AccessControl {
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
     // Shipment status
     enum ShipmentStatus {
         PREPARING,
@@ -24,12 +25,15 @@ contract Shipment is AccessControl {
     ShipmentStatus status; // Current status of the shipment
     uint256 moveTimestamp; // Timestamp in seconds when the shipment should arrive at the next location
 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
     // Define an event to be emitted when a shipment's location is updated
     event LocationUpdated(string newLocation);
 
+    /* --------------------------------------------- ERRORS --------------------------------------------- */ 
     // @notice custom error indicating that the shipment has been delivered
     error OrderDelivered(ShipmentStatus status);
 
+    /* --------------------------------------------- MODIFIERS --------------------------------------------- */ 
     // @notice check whether the shipment has not been succesfully delivered
     modifier notDelivered() {
         if (status == ShipmentStatus.DELIVERED || status == ShipmentStatus.VERIFIED) {
@@ -38,6 +42,7 @@ contract Shipment is AccessControl {
         _;
     }
 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
     /// @notice constructor to create a new shipment
     /// @param _manager manager of the shipment
     /// @param _shipmentCode code for the shipment
@@ -107,6 +112,24 @@ contract Shipment is AccessControl {
 
     /// @notice Check if the location should be updated and perform the update if necessary
     function updateShipmentLocation() public notDelivered {
+        if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
+            // Move current location to the next one
+            currentLocation++;
+
+            if (currentLocation == locations.length - 1) {
+                status = ShipmentStatus.DELIVERED;
+            } else {
+                status = ShipmentStatus.PREPARING;
+            }
+
+            moveTimestamp = 0; // Reset timestamp
+            
+            emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
+        }
+    }
+
+    /// @notice Check if the location should be updated and perform the update if necessary
+    function shipperVerify() public notDelivered {
         if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
             // Move current location to the next one
             currentLocation++;

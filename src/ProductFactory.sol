@@ -10,12 +10,13 @@ import "./Registry.sol";
 /// @author Quan Hoang
 
 contract ProductFactory is AccessControl {
-    // The registry to register the new product contract
-    Registry public registry;
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
+    Registry public registry; // The registry to register the new product contract
 
-     // Events to announce whenever a product is created
-    event ProductCreated(string sku);
+    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
+    event ProductCreated(string sku); // Events to announce whenever a product is created
 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
     /// @notice constructor to create the product factory
     /// @param _registryAddress the address of the registry
     constructor(address _registryAddress) AccessControl(msg.sender) {

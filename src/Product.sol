@@ -8,6 +8,7 @@ import "./AccessControl.sol";
 /// @author Quan Hoang
 
 contract Product is AccessControl {
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
     // Data type to store weather condition
     struct WeatherCondition {
         uint256 temperature; // Recorded temperature at transit point
@@ -24,6 +25,7 @@ contract Product is AccessControl {
     uint256 expiryDate; // The date when the product is expired in UNIX
     WeatherCondition latestWeatherCondition; // Last recorded weather condition at the last transit point
 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
     /// @notice constructor to create a product
     /// @param _manager manager of the product
     /// @param _sku stock keeping unit
