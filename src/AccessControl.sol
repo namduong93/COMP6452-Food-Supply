@@ -7,7 +7,7 @@ contract AccessControl {
     address[] managers;
 
     /* --------------------------------------------- EVENTS --------------------------------------------- */ 
-    event ManagerAdded(address manager); // Events to announce a manager has been added
+    event ManagerAdded(address); // Events to announce a manager has been added
 
     /* --------------------------------------------- ERRORS --------------------------------------------- */
     error Unauthorized(address); // Error denoting that this address is not authorized/not a manager
