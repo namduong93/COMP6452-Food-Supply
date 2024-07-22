@@ -11,8 +11,9 @@ contract AccessControl {
         managers.push(_manager);
     }
 
-    // custom error
-    error Unauthorized(address);
+    // Custom errors
+    error Unauthorized(address); // Error denoting that this address is not authorized/not a manager
+    error ManagerAlreadyAdded(address); // Error indicating that this address is already a manager
 
     /// @notice modifier to check if sender is a manager
     modifier onlyManager() {
@@ -35,6 +36,12 @@ contract AccessControl {
     /// @notice add a new manager to the contract
     /// @param _manager new manager/creator of the contract
     function addManager(address _manager) public onlyManager {
+        for (uint i = 0; i < managers.length; i++) {
+            if (managers[i] == _manager) {
+                revert ManagerAlreadyAdded(_manager); 
+            }
+        }
+
         managers.push(_manager);
     }
 
