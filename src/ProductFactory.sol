@@ -27,26 +27,29 @@ contract ProductFactory is AccessControl {
     /// @param _sku stock keeping unit
     /// @param _name name of the product
     /// @param _description description of the product
-    /// @param _quantity quantity of the product
     /// @param _productionDate date the product is produced in UNIX
     /// @param _expiryDate date the product is expired in UNIX
+    /// @param _minCTemperature minimum allowed temperature in C
+    /// @param _maxCTemperature maximum allowed temperature in C
     /// @return The address for the contract of the new product
     function createProduct(
         string memory _sku,
         string memory _name,
         string memory _description,
-        uint256 _quantity,
         uint _productionDate,
-        uint _expiryDate
+        uint _expiryDate,
+        uint256 _minCTemperature,  
+        uint256 _maxCTemperature
     ) public onlyManager returns (address) {
         Product newProduct = new Product(
             msg.sender,
             _sku,
             _name,
             _description,
-            _quantity,
             _productionDate,
-            _expiryDate
+            _expiryDate,
+            _minCTemperature,  
+            _maxCTemperature
         );
         
         registry.registerProduct(address(newProduct), _sku);

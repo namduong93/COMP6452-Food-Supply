@@ -27,12 +27,14 @@ contract ShipmentFactory is AccessControl {
     /// @param _shipmentCode code for the shipment
     /// @param _receiver receiver of the shipment
     /// @param _productAddress address of the product being shipped
+    /// @param _productQuantity quantity of the product being shipped
     /// @param _locations starting point, delivery points, and final destination for the shipment
     /// @return The address for the contract of the new shipment
     function createShipment(
         string memory _shipmentCode,
         address _receiver,
         address _productAddress,
+        uint256 _productQuantity,
         string[] memory _locations
     ) public onlyManager returns (address) {
         Shipment newShipment = new Shipment(
@@ -40,6 +42,7 @@ contract ShipmentFactory is AccessControl {
             _shipmentCode,
             _receiver,
             _productAddress,
+            _productQuantity,
             _locations
         );
 

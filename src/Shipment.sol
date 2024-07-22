@@ -9,7 +9,7 @@ import "./Product.sol";
 /// @author
 
 contract Shipment is AccessControl {
-    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     // Shipment status
     enum ShipmentStatus {
         PREPARING, // Shipment is being prepared to be shipped to the next location
@@ -22,24 +22,29 @@ contract Shipment is AccessControl {
     string shipmentCode; // Code/Identifier for the shipment
     address receiver; // Adress of the receiver of the shipment
     address productAddress; // Address to a deployed contract for a Product with all its details
+    uint256 productQuantity; // The quantity of the product being shipped
     uint256 currentLocation; // Current location of the shipment expressed as an index
     string[] locations; // Starting point, delivery points, and final destination for the shipment
     ShipmentStatus status; // Current status of the shipment
     uint256 moveTimestamp; // Timestamp in seconds when the shipment should arrive at the next location
 
-    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */
     // Define an event to be emitted when a shipment's location is updated
     event LocationUpdated(string newLocation);
 
-    /* --------------------------------------------- ERRORS --------------------------------------------- */ 
+    /* --------------------------------------------- ERRORS --------------------------------------------- */
     error ShipmentDelivered(ShipmentStatus); // error indicating that the shipment has been already delivered
     error ShipmentNotDelivered(ShipmentStatus); // error indicating that the shipment has not been delivered
     error NotReceiver(address); // error indicating that this is not the receiver
 
-    /* --------------------------------------------- MODIFIERS --------------------------------------------- */ 
+    /* --------------------------------------------- MODIFIERS --------------------------------------------- */
     // @notice check whether the shipment has not been succesfully delivered
     modifier notDelivered() {
-        if (status == ShipmentStatus.DELIVERED || status == ShipmentStatus.VERIFIED_BY_DELIVERER || status == ShipmentStatus.FINALIZED) {
+        if (
+            status == ShipmentStatus.DELIVERED ||
+            status == ShipmentStatus.VERIFIED_BY_DELIVERER ||
+            status == ShipmentStatus.FINALIZED
+        ) {
             revert ShipmentDelivered(status);
         }
         _;
@@ -47,8 +52,8 @@ contract Shipment is AccessControl {
 
     // @notice check whether the shipment has been succesfully delivered
     modifier delivered() {
-        if (status == ShipmentStatus.DELIVERED) {
-            revert ShipmentDelivered(status);
+        if (status != ShipmentStatus.DELIVERED || status != ShipmentStatus.VERIFIED_BY_DELIVERER) {
+            revert ShipmentNotDelivered(status);
         }
         _;
     }
@@ -61,30 +66,33 @@ contract Shipment is AccessControl {
         _;
     }
 
-    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */
     /// @notice constructor to create a new shipment
     /// @param _manager manager of the shipment
     /// @param _shipmentCode code for the shipment
     /// @param _receiver receiver of the shipment
     /// @param _productAddress address of the product being shipped
+    /// @param _productQuantity quantity of the product being shipped
     /// @param _locations starting point, delivery points, and final destination for the shipment
     constructor(
         address _manager,
         string memory _shipmentCode,
         address _receiver,
         address _productAddress,
+        uint256 _productQuantity,
         string[] memory _locations
     ) AccessControl(_manager) {
         shipmentCode = _shipmentCode;
         receiver = _receiver;
         productAddress = _productAddress;
+        productQuantity = _productQuantity;
         locations = _locations;
         currentLocation = 0; // Starting point so index 0
         status = ShipmentStatus.PREPARING;
         moveTimestamp = 0; // 0 also means the shipment is not being shipped so there is no "expected" arrive time
     }
 
-    /// @notice Get the details of the location of a shipment
+    /// @notice Get the details of the shipment
     /// @return _shipmentCode code for the shipment
     /// @return _productAddress address of the contract for the product
     /// @return _currentLocation current location of the shipment
@@ -98,6 +106,7 @@ contract Shipment is AccessControl {
             string memory,
             address,
             address,
+            uint256,
             string memory,
             string[] memory,
             string memory,
@@ -108,6 +117,7 @@ contract Shipment is AccessControl {
             shipmentCode,
             receiver,
             productAddress,
+            productQuantity,
             locations[currentLocation],
             locations,
             printShipmentStatus(status),
@@ -117,14 +127,13 @@ contract Shipment is AccessControl {
 
     /// @notice Move the shipment to a new location after a specified number of seconds
     /// @param _seconds Number of seconds after which the location should change
-    function moveShipment(uint256 _seconds)
-        public
-        onlyManager
-        notDelivered
-    {
-        uint256 temp_c = 20; // Hard-coded temperature value for this example
+    function moveShipment(uint256 _seconds) public onlyManager notDelivered {
+        // Hard-coded example temperature value to verify temperature
+        Product product = Product(productAddress);
+        uint256 temp_c = 20;
         require(
-            temp_c >= 15 && temp_c <= 25,
+            temp_c >= product.getAllowedWeatherCondition().minCTemperature &&
+                temp_c <= product.getAllowedWeatherCondition().maxCTemperature,
             "Temperature is not suitable for departure"
         );
 
@@ -147,7 +156,7 @@ contract Shipment is AccessControl {
             }
 
             moveTimestamp = 0; // Reset timestamp
-            
+
             emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
         }
     }
@@ -163,11 +172,16 @@ contract Shipment is AccessControl {
     }
 
     // @notice Helper function to get the string representation of the status
-    function printShipmentStatus(ShipmentStatus _status) public pure returns (string memory) {
+    function printShipmentStatus(ShipmentStatus _status)
+        public
+        pure
+        returns (string memory)
+    {
         if (_status == ShipmentStatus.PREPARING) return "Preparing";
         if (_status == ShipmentStatus.SHIPPING) return "Shipping";
         if (_status == ShipmentStatus.DELIVERED) return "Delivered";
-        if (_status == ShipmentStatus.VERIFIED_BY_DELIVERER) return "Verified by Deliverer";
+        if (_status == ShipmentStatus.VERIFIED_BY_DELIVERER)
+            return "Verified by Deliverer";
         if (_status == ShipmentStatus.FINALIZED) return "Finalized";
         return "";
     }
