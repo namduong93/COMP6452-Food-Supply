@@ -12,13 +12,15 @@ contract Shipment is AccessControl {
     /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
     // Shipment status
     enum ShipmentStatus {
-        PREPARING,
-        SHIPPING,
-        DELIVERED,
-        VERIFIED
+        PREPARING, // Shipment is being prepared to be shipped to the next location
+        SHIPPING, // Shipment is currently being shipped
+        DELIVERED, // Shipment has, on theory, arrived at the final destination
+        VERIFIED_BY_DELIVERER, // Shipment has been verified by deliverer/manager side that it has been successfully delivered
+        FINALIZED
     }
 
     string shipmentCode; // Code/Identifier for the shipment
+    address receiver; // Adress of the receiver of the shipment
     address productAddress; // Address to a deployed contract for a Product with all its details
     uint256 currentLocation; // Current location of the shipment expressed as an index
     string[] locations; // Starting point, delivery points, and final destination for the shipment
@@ -30,14 +32,31 @@ contract Shipment is AccessControl {
     event LocationUpdated(string newLocation);
 
     /* --------------------------------------------- ERRORS --------------------------------------------- */ 
-    // @notice custom error indicating that the shipment has been delivered
-    error OrderDelivered(ShipmentStatus status);
+    error ShipmentDelivered(ShipmentStatus); // error indicating that the shipment has been already delivered
+    error ShipmentNotDelivered(ShipmentStatus); // error indicating that the shipment has not been delivered
+    error NotReceiver(address); // error indicating that this is not the receiver
 
     /* --------------------------------------------- MODIFIERS --------------------------------------------- */ 
     // @notice check whether the shipment has not been succesfully delivered
     modifier notDelivered() {
-        if (status == ShipmentStatus.DELIVERED || status == ShipmentStatus.VERIFIED) {
-            revert OrderDelivered(status);
+        if (status == ShipmentStatus.DELIVERED || status == ShipmentStatus.VERIFIED_BY_DELIVERER || status == ShipmentStatus.FINALIZED) {
+            revert ShipmentDelivered(status);
+        }
+        _;
+    }
+
+    // @notice check whether the shipment has been succesfully delivered
+    modifier delivered() {
+        if (status == ShipmentStatus.DELIVERED) {
+            revert ShipmentDelivered(status);
+        }
+        _;
+    }
+
+    // @notice check whether the shipment has not been succesfully delivered
+    modifier onlyReceiver() {
+        if (msg.sender != receiver) {
+            revert NotReceiver(msg.sender);
         }
         _;
     }
@@ -46,15 +65,18 @@ contract Shipment is AccessControl {
     /// @notice constructor to create a new shipment
     /// @param _manager manager of the shipment
     /// @param _shipmentCode code for the shipment
+    /// @param _receiver receiver of the shipment
     /// @param _productAddress address of the product being shipped
     /// @param _locations starting point, delivery points, and final destination for the shipment
     constructor(
         address _manager,
         string memory _shipmentCode,
+        address _receiver,
         address _productAddress,
         string[] memory _locations
     ) AccessControl(_manager) {
         shipmentCode = _shipmentCode;
+        receiver = _receiver;
         productAddress = _productAddress;
         locations = _locations;
         currentLocation = 0; // Starting point so index 0
@@ -75,6 +97,7 @@ contract Shipment is AccessControl {
         returns (
             string memory,
             address,
+            address,
             string memory,
             string[] memory,
             string memory,
@@ -83,6 +106,7 @@ contract Shipment is AccessControl {
     {
         return (
             shipmentCode,
+            receiver,
             productAddress,
             locations[currentLocation],
             locations,
@@ -128,22 +152,14 @@ contract Shipment is AccessControl {
         }
     }
 
-    /// @notice Check if the location should be updated and perform the update if necessary
-    function shipperVerify() public notDelivered {
-        if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
-            // Move current location to the next one
-            currentLocation++;
+    /// @notice Verify/Announce that the shipment has been delivered to the final destination by the deliverer/manager side (if receiver has not already done so)
+    function delivererVerify() public onlyManager delivered {
+        status = ShipmentStatus.VERIFIED_BY_DELIVERER;
+    }
 
-            if (currentLocation == locations.length - 1) {
-                status = ShipmentStatus.DELIVERED;
-            } else {
-                status = ShipmentStatus.PREPARING;
-            }
-
-            moveTimestamp = 0; // Reset timestamp
-            
-            emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
-        }
+    /// @notice Verify that the shipment has been delivered to the final destination by the receiver side
+    function receiverVerify() public onlyReceiver delivered {
+        status = ShipmentStatus.FINALIZED;
     }
 
     // @notice Helper function to get the string representation of the status
@@ -151,7 +167,8 @@ contract Shipment is AccessControl {
         if (_status == ShipmentStatus.PREPARING) return "Preparing";
         if (_status == ShipmentStatus.SHIPPING) return "Shipping";
         if (_status == ShipmentStatus.DELIVERED) return "Delivered";
-        if (_status == ShipmentStatus.VERIFIED) return "Verified";
+        if (_status == ShipmentStatus.VERIFIED_BY_DELIVERER) return "Verified by Deliverer";
+        if (_status == ShipmentStatus.FINALIZED) return "Finalized";
         return "";
     }
 }
