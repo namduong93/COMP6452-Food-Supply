@@ -1,147 +1,91 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
+
+import "./AccessControl.sol";
 
 /// @title Contract to manage shipments with scheduled location updates in seconds
 /// @author
 
-contract Shipment {
-    address public manager; // Contract manager
-
-    // Data type to store shipment details
-    struct ShipmentDetails {
-        uint256 id; // Shipment ID
-        string deliveryName; // Delivery name for the shipment
-        address productAddress; // Address to a deployed contract for a Product with all its details
-        uint256 productQuantity; // The quantity of the product being shipped/ordered
-        string location; // Current location of the shipment
-        string targetLocation; // Target location to move to
-        uint256 moveTimestamp; // Timestamp in seconds when the location should change
-    }
-
-    uint256 public shipmentCount; // Counter to keep track of shipment IDs
-    mapping(uint256 => ShipmentDetails) public shipments; // Mapping to store shipment details by ID
+contract Shipment is AccessControl {
+    string shipmentCode; // Code/Identifier for the shipment
+    address productAddress; // Address to a deployed contract for a Product with all its details
+    uint256 productQuantity; // The quantity of the product being shipped/ordered
+    string currentLocation; // Current location of the shipment
+    string targetLocation; // Target location to move to
+    uint256 moveTimestamp; // Timestamp in seconds when the location should change
 
     // Define an event to be emitted when a shipment's location is updated
-    event LocationUpdated(uint256 id, string newLocation);
+    event LocationUpdated(string newLocation);
 
-    /// @notice Constructor to set the manager of the contract
-    constructor() {
-        manager = msg.sender;
-        shipmentCount = 0; // Initialize shipment counter
-    }
-
-    /// @notice Create a new shipment with a delivery name and location
-    /// @param _deliveryName Name of the delivery for the shipment
-    /// @param _location Location of the shipment
-    /// @return The ID of the newly created shipment
-    function createShipment(
-        string memory _deliveryName,
+    /// @notice constructor to create a new shipment
+    /// @param _shipper shipper of the shipment
+    /// @param _shipmentCode code for the shipment
+    /// @param _productAddress address of the product being shipped
+    /// @param _productQuantity quantity for the product being shipped
+    /// @param _currentLocation starting location of the shipment
+    /// @param _targetLocation target location/destination for the shipment
+    constructor(
+        address _shipper,
+        string memory _shipmentCode,
         address _productAddress,
-        uint _productQuantity,
-        string memory _location
-    ) public returns (uint256) {
-        require(
-            msg.sender == manager,
-            "Only the manager can create a shipment"
-        ); // Access control
-
-        shipmentCount++;
-        uint256 shipmentId = shipmentCount; // Use a simple incrementing ID
-
-        // Fill in the shipment details
-        shipments[shipmentId] = ShipmentDetails(
-            shipmentId,
-            _deliveryName,
-            _productAddress,
-            _productQuantity,
-            _location,
-            "",
-            0
-        );
-        
-        return shipmentId;
+        uint256 _productQuantity,
+        string memory _currentLocation,
+        string memory _targetLocation
+    ) AccessControl(_shipper) {
+        shipmentCode = _shipmentCode;
+        productAddress = _productAddress;
+        productQuantity = _productQuantity;
+        currentLocation = _currentLocation;
+        targetLocation = _targetLocation;
+        moveTimestamp = block.timestamp;
     }
 
     /// @notice Move the shipment to a new location after a specified number of seconds
-    /// @param _shipmentId ID of the shipment to update
     /// @param _seconds Number of seconds after which the location should change
     /// @param _targetLocation Target location to move to
-    function moveShipment(
-        uint256 _shipmentId,
-        uint256 _seconds,
-        string memory _targetLocation
-    ) public {
-        require(
-            msg.sender == manager,
-            "Only the manager can move the shipment"
-        ); // Access control
-        require(
-            _shipmentId > 0 && _shipmentId <= shipmentCount,
-            "Shipment ID is invalid"
-        );
-
+    function moveShipment(uint256 _seconds, string memory _targetLocation)
+        public
+        onlyManager
+    {
         uint256 temp_c = 20; // Hard-coded temperature value for this example
         require(
             temp_c >= 15 && temp_c <= 25,
             "Temperature is not suitable for departure"
         );
 
-        ShipmentDetails storage shipment = shipments[_shipmentId];
-        shipment.targetLocation = _targetLocation;
-        shipment.moveTimestamp = block.timestamp + _seconds; // Add the delay in seconds to the current timestamp
+        targetLocation = _targetLocation;
+        moveTimestamp = block.timestamp + _seconds; // Add the delay in seconds to the current timestamp
 
         // Emit event to log the update
-        emit LocationUpdated(_shipmentId, shipment.location);
+        emit LocationUpdated(currentLocation);
     }
 
     /// @notice Check if the location should be updated and perform the update if necessary
-    /// @param _shipmentId ID of the shipment to check
-    function updateShipmentLocation(uint256 _shipmentId) public {
-        require(
-            _shipmentId > 0 && _shipmentId <= shipmentCount,
-            "Shipment ID is invalid"
-        );
-
-        ShipmentDetails storage shipment = shipments[_shipmentId];
-
-        if (
-            block.timestamp >= shipment.moveTimestamp &&
-            shipment.moveTimestamp != 0
-        ) {
-            shipment.location = shipment.targetLocation;
-            shipment.targetLocation = ""; // Clear target location after update
-            shipment.moveTimestamp = 0; // Reset timestamp
-            emit LocationUpdated(_shipmentId, shipment.location); // Emit event
+    function updateShipmentLocation() public {
+        if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
+            currentLocation = targetLocation;
+            targetLocation = ""; // Clear target location after update
+            moveTimestamp = 0; // Reset timestamp
+            emit LocationUpdated(currentLocation); // Emit event
         }
     }
 
-    /// @notice Get the details of a shipment by ID
-    /// @param _shipmentId ID of the shipment
-    /// @return deliveryName The delivery name of the shipment
-    /// @return location The current location of the shipment
-    /// @return targetLocation The target location to move to
-    /// @return moveTimestamp The timestamp in seconds when the location should change
-    function getShipmentDetails(uint256 _shipmentId)
+    /// @notice Get the details of the location of a shipment
+    /// @return _shipmentCode code for the shipment
+    /// @return _currentLocation current location of the shipment
+    /// @return _targetLocation target location/destination for the shipment
+    //  @return _moveTimestamp most recent time when the location is changed
+    function getShipmentLocationDetails()
         public
         view
         returns (
-            string memory deliveryName,
-            string memory location,
-            string memory targetLocation,
-            uint256 moveTimestamp
+            string memory _shipmentCode,
+            string memory _currentLocation,
+            string memory _targetLocation,
+            uint256 _moveTimestamp
         )
     {
-        require(
-            _shipmentId > 0 && _shipmentId <= shipmentCount,
-            "Shipment ID is invalid"
-        );
-        ShipmentDetails memory details = shipments[_shipmentId];
-        return (
-            details.deliveryName,
-            details.location,
-            details.targetLocation,
-            details.moveTimestamp
-        );
+        return (shipmentCode, currentLocation, targetLocation, moveTimestamp);
     }
 }
