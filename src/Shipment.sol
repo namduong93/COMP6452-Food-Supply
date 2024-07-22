@@ -3,25 +3,27 @@
 pragma solidity ^0.8.0;
 
 /// @title Contract to manage shipments with scheduled location updates in seconds
-/// @author 
+/// @author
 
 contract Shipment {
     address public manager; // Contract manager
 
     // Data type to store shipment details
     struct ShipmentDetails {
-        uint id; // Shipment ID
+        uint256 id; // Shipment ID
         string deliveryName; // Delivery name for the shipment
+        address productAddress; // Address to a deployed contract for a Product with all its details
+        uint256 productQuantity; // The quantity of the product being shipped/ordered
         string location; // Current location of the shipment
         string targetLocation; // Target location to move to
-        uint moveTimestamp; // Timestamp in seconds when the location should change
+        uint256 moveTimestamp; // Timestamp in seconds when the location should change
     }
 
-    uint public shipmentCount; // Counter to keep track of shipment IDs
-    mapping(uint => ShipmentDetails) public shipments; // Mapping to store shipment details by ID
+    uint256 public shipmentCount; // Counter to keep track of shipment IDs
+    mapping(uint256 => ShipmentDetails) public shipments; // Mapping to store shipment details by ID
 
     // Define an event to be emitted when a shipment's location is updated
-    event LocationUpdated(uint id, string newLocation);
+    event LocationUpdated(uint256 id, string newLocation);
 
     /// @notice Constructor to set the manager of the contract
     constructor() {
@@ -33,11 +35,31 @@ contract Shipment {
     /// @param _deliveryName Name of the delivery for the shipment
     /// @param _location Location of the shipment
     /// @return The ID of the newly created shipment
-    function createShipment(string memory _deliveryName, string memory _location) public returns (uint) {
-        require(msg.sender == manager, "Only the manager can create a shipment"); // Access control
+    function createShipment(
+        string memory _deliveryName,
+        address _productAddress,
+        uint _productQuantity,
+        string memory _location
+    ) public returns (uint256) {
+        require(
+            msg.sender == manager,
+            "Only the manager can create a shipment"
+        ); // Access control
+
         shipmentCount++;
-        uint shipmentId = shipmentCount; // Use a simple incrementing ID
-        shipments[shipmentId] = ShipmentDetails(shipmentId, _deliveryName, _location, "", 0);
+        uint256 shipmentId = shipmentCount; // Use a simple incrementing ID
+
+        // Fill in the shipment details
+        shipments[shipmentId] = ShipmentDetails(
+            shipmentId,
+            _deliveryName,
+            _productAddress,
+            _productQuantity,
+            _location,
+            "",
+            0
+        );
+        
         return shipmentId;
     }
 
@@ -45,12 +67,25 @@ contract Shipment {
     /// @param _shipmentId ID of the shipment to update
     /// @param _seconds Number of seconds after which the location should change
     /// @param _targetLocation Target location to move to
-    function moveShipment(uint _shipmentId, uint _seconds, string memory _targetLocation) public {
-        require(msg.sender == manager, "Only the manager can move the shipment"); // Access control
-        require(_shipmentId > 0 && _shipmentId <= shipmentCount, "Shipment ID is invalid");
+    function moveShipment(
+        uint256 _shipmentId,
+        uint256 _seconds,
+        string memory _targetLocation
+    ) public {
+        require(
+            msg.sender == manager,
+            "Only the manager can move the shipment"
+        ); // Access control
+        require(
+            _shipmentId > 0 && _shipmentId <= shipmentCount,
+            "Shipment ID is invalid"
+        );
 
-        uint temp_c = 20; // Hard-coded temperature value for this example
-        require(temp_c >= 15 && temp_c <= 25, "Temperature is not suitable for departure");
+        uint256 temp_c = 20; // Hard-coded temperature value for this example
+        require(
+            temp_c >= 15 && temp_c <= 25,
+            "Temperature is not suitable for departure"
+        );
 
         ShipmentDetails storage shipment = shipments[_shipmentId];
         shipment.targetLocation = _targetLocation;
@@ -62,12 +97,18 @@ contract Shipment {
 
     /// @notice Check if the location should be updated and perform the update if necessary
     /// @param _shipmentId ID of the shipment to check
-    function updateShipmentLocation(uint _shipmentId) public {
-        require(_shipmentId > 0 && _shipmentId <= shipmentCount, "Shipment ID is invalid");
+    function updateShipmentLocation(uint256 _shipmentId) public {
+        require(
+            _shipmentId > 0 && _shipmentId <= shipmentCount,
+            "Shipment ID is invalid"
+        );
 
         ShipmentDetails storage shipment = shipments[_shipmentId];
 
-        if (block.timestamp >= shipment.moveTimestamp && shipment.moveTimestamp != 0) {
+        if (
+            block.timestamp >= shipment.moveTimestamp &&
+            shipment.moveTimestamp != 0
+        ) {
             shipment.location = shipment.targetLocation;
             shipment.targetLocation = ""; // Clear target location after update
             shipment.moveTimestamp = 0; // Reset timestamp
@@ -81,9 +122,26 @@ contract Shipment {
     /// @return location The current location of the shipment
     /// @return targetLocation The target location to move to
     /// @return moveTimestamp The timestamp in seconds when the location should change
-    function getShipmentDetails(uint _shipmentId) public view returns (string memory deliveryName, string memory location, string memory targetLocation, uint moveTimestamp) {
-        require(_shipmentId > 0 && _shipmentId <= shipmentCount, "Shipment ID is invalid");
+    function getShipmentDetails(uint256 _shipmentId)
+        public
+        view
+        returns (
+            string memory deliveryName,
+            string memory location,
+            string memory targetLocation,
+            uint256 moveTimestamp
+        )
+    {
+        require(
+            _shipmentId > 0 && _shipmentId <= shipmentCount,
+            "Shipment ID is invalid"
+        );
         ShipmentDetails memory details = shipments[_shipmentId];
-        return (details.deliveryName, details.location, details.targetLocation, details.moveTimestamp);
+        return (
+            details.deliveryName,
+            details.location,
+            details.targetLocation,
+            details.moveTimestamp
+        );
     }
 }

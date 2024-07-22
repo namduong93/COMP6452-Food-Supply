@@ -1,0 +1,279 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "newLocation",
+						"type": "string"
+					}
+				],
+				"name": "LocationUpdated",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_deliveryName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_location",
+						"type": "string"
+					}
+				],
+				"name": "createShipment",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_shipmentId",
+						"type": "uint256"
+					}
+				],
+				"name": "getShipmentDetails",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "deliveryName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "location",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "targetLocation",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "moveTimestamp",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "manager",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_shipmentId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_seconds",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "_targetLocation",
+						"type": "string"
+					}
+				],
+				"name": "moveShipment",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "shipmentCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "shipments",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "deliveryName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "location",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "targetLocation",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "moveTimestamp",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_shipmentId",
+						"type": "uint256"
+					}
+				],
+				"name": "updateShipmentLocation",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"createShipment(string,string)": {
+					"params": {
+						"_deliveryName": "Name of the delivery for the shipment",
+						"_location": "Location of the shipment"
+					},
+					"returns": {
+						"_0": "The ID of the newly created shipment"
+					}
+				},
+				"getShipmentDetails(uint256)": {
+					"params": {
+						"_shipmentId": "ID of the shipment"
+					},
+					"returns": {
+						"deliveryName": "The delivery name of the shipment",
+						"location": "The current location of the shipment",
+						"moveTimestamp": "The timestamp in seconds when the location should change",
+						"targetLocation": "The target location to move to"
+					}
+				},
+				"moveShipment(uint256,uint256,string)": {
+					"params": {
+						"_seconds": "Number of seconds after which the location should change",
+						"_shipmentId": "ID of the shipment to update",
+						"_targetLocation": "Target location to move to"
+					}
+				},
+				"updateShipmentLocation(uint256)": {
+					"params": {
+						"_shipmentId": "ID of the shipment to check"
+					}
+				}
+			},
+			"title": "Contract to manage shipments with scheduled location updates in seconds",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"constructor": {
+					"notice": "Constructor to set the manager of the contract"
+				},
+				"createShipment(string,string)": {
+					"notice": "Create a new shipment with a delivery name and location"
+				},
+				"getShipmentDetails(uint256)": {
+					"notice": "Get the details of a shipment by ID"
+				},
+				"moveShipment(uint256,uint256,string)": {
+					"notice": "Move the shipment to a new location after a specified number of seconds"
+				},
+				"updateShipmentLocation(uint256)": {
+					"notice": "Check if the location should be updated and perform the update if necessary"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"src/Shipment.sol": "Shipment"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"src/Shipment.sol": {
+			"keccak256": "0x8fb6fd77dc2a115199a55d3ad129a6c26cf56f006d79cff613f899b91b3d9ace",
+			"license": "UNLICENSED",
+			"urls": [
+				"bzz-raw://dc86781eaacd1d11a9e9425d934baeeaf327c078030941ab75c37e389d80c24d",
+				"dweb:/ipfs/QmZ2rhY24oU6P2UitFTcsB29MNDL8GTwd7T35KSBdjHC7M"
+			]
+		}
+	},
+	"version": 1
+}
