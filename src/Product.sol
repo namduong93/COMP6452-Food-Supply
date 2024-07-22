@@ -9,12 +9,10 @@ import "./AccessControl.sol";
 
 contract Product is AccessControl {
     /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
-    // Data type to store weather condition
-    struct WeatherCondition {
-        uint256 temperature; // Recorded temperature at transit point
-        string description; // Description of the weather at transit point
-        uint256 date; // The date the product arrives at the transit point
-        string transitPoint; // Name of the transit point
+    // Data type to store the allowed weather condition fot this product
+    struct AllowedWeatherCondition {
+        uint256 minCTemperature; // Minimum allowed temperature in C    
+        uint256 maxCTemperature; // Maximum allowed temperature in C
     }
 
     string sku; // Stock-keeping unit for the product
@@ -23,7 +21,7 @@ contract Product is AccessControl {
     uint256 quantity; // The quantity of the product
     uint256 productionDate; // The date when the product is produced in UNIX
     uint256 expiryDate; // The date when the product is expired in UNIX
-    WeatherCondition latestWeatherCondition; // Last recorded weather condition at the last transit point
+    AllowedWeatherCondition allowedWeatherCondition; // The allowed weather condition for this product
 
     /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
     /// @notice constructor to create a product
@@ -33,6 +31,8 @@ contract Product is AccessControl {
     /// @param _description description of the product
     /// @param _productionDate date the product is produced in UNIX
     /// @param _expiryDate date the product is expired in UNIX
+    /// @param _minCTemperature minimum allowed temperature in C
+    /// @param _maxCTemperature maximum allowed temperature in C
     constructor(
         address _manager,
         string memory _sku,
@@ -40,7 +40,9 @@ contract Product is AccessControl {
         string memory _description,
         uint256 _quantity,
         uint256 _productionDate,
-        uint256 _expiryDate
+        uint256 _expiryDate,
+        uint256 _minCTemperature,  
+        uint256 _maxCTemperature
     ) AccessControl(_manager) {
         sku = _sku;
         name = _name;
@@ -48,6 +50,7 @@ contract Product is AccessControl {
         quantity = _quantity;
         productionDate = _productionDate;
         expiryDate = _expiryDate;
+        allowedWeatherCondition = AllowedWeatherCondition(_minCTemperature, _maxCTemperature);
     }
 
     /// @notice Get the details of the product
@@ -68,7 +71,7 @@ contract Product is AccessControl {
             uint256,
             uint256,
             uint256,
-            WeatherCondition memory
+            AllowedWeatherCondition memory
         )
     {
         return (
@@ -78,26 +81,7 @@ contract Product is AccessControl {
             quantity,
             productionDate,
             expiryDate,
-            latestWeatherCondition
-        );
-    }
-
-    /// @notice set a new weather condition when the product arrives at a new transit point
-    /// @param _temperature recorded temperature at transit point
-    /// @param _description description of the weather at transit point
-    /// @param _date the date the product arrives at the transit point
-    /// @param _transitPoint name of the transit point
-    function setWeatherCondition(
-        uint256 _temperature,
-        string memory _description,
-        uint256 _date,
-        string memory _transitPoint
-    ) public onlyManager {
-        latestWeatherCondition = WeatherCondition(
-            _temperature,
-            _description,
-            _date,
-            _transitPoint
+            allowedWeatherCondition
         );
     }
 }
