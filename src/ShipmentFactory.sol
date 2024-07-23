@@ -10,13 +10,13 @@ import "./Registry.sol";
 /// @author Quan Hoang
 
 contract ShipmentFactory is AccessControl {
-    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     Registry public registry; // The registry to register the new shipment contract
 
-    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */
     event ShipmentCreated(uint256 shipmentCode); // Events to announce whenever a shipment is created
 
-    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */
     /// @notice constructor to create the shipment factory
     /// @param _registryAddress the address of the registry
     constructor(address _registryAddress) AccessControl(msg.sender) {

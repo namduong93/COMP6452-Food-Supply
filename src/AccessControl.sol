@@ -2,11 +2,11 @@
 pragma solidity 0.8.19;
 
 contract AccessControl {
-    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     // Array for all managers of this contract
     address[] managers;
 
-    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */
     event ManagerAdded(address); // Events to announce a manager has been added
 
     /* --------------------------------------------- ERRORS --------------------------------------------- */
@@ -24,7 +24,7 @@ contract AccessControl {
     modifier onlyManager() {
         bool isManager = false;
 
-        for (uint i = 0; i < managers.length; i++) {
+        for (uint256 i = 0; i < managers.length; i++) {
             if (managers[i] == msg.sender) {
                 isManager = true;
                 break;
@@ -41,9 +41,9 @@ contract AccessControl {
     /// @notice add a new manager to the contract
     /// @param _manager new manager/creator of the contract
     function addManager(address _manager) public onlyManager {
-        for (uint i = 0; i < managers.length; i++) {
+        for (uint256 i = 0; i < managers.length; i++) {
             if (managers[i] == _manager) {
-                revert ManagerAlreadyAdded(_manager); 
+                revert ManagerAlreadyAdded(_manager);
             }
         }
 
@@ -52,7 +52,7 @@ contract AccessControl {
     }
 
     /// @notice get all managers of the contract
-    function getManagers() public view returns(address[] memory) {
+    function getManagers() public view returns (address[] memory) {
         return managers;
     }
 }

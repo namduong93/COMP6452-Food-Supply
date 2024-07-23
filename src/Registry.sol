@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 /// @author Quan Hoang
 
 contract Registry {
-    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     // Arrays to store all the product SKUs and shipment codes
     uint256[] productSKUs;
     uint256[] shipmentCodes;
@@ -15,11 +15,11 @@ contract Registry {
     mapping(uint256 => address) products;
     mapping(uint256 => address) shipments;
 
-    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */
     event ProductRegistered(address productAddress); // Events to announce whenever a product is registered
     event ShipmentRegistered(address shipmentAddress); // Events to announce whenever a shipment is registered
 
-    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */
     /// @notice Register a product contract into the registry
     /// @param _productAddress The address for the product contract
     /// @param _sku Stockeeping unit

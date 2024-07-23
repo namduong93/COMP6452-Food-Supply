@@ -7,7 +7,7 @@ import {Registry} from "../src/Registry.sol";
 
 contract RegistryTest is Test {
     Registry registry;
-    
+
     address addr1 = address(0x123);
 
     function setUp() public {

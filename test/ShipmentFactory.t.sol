@@ -25,14 +25,7 @@ contract ShipmentFactoryTest is Test {
         string[] memory locations = new string[](2);
         locations[0] = "Location1";
         locations[1] = "Location2";
-        shipmentFactory.createShipment(
-            addr2,
-            addr1,
-            100,
-            block.timestamp,
-            block.timestamp + 86400,
-            locations
-        );
+        shipmentFactory.createShipment(addr2, addr1, 100, block.timestamp, block.timestamp + 86400, locations);
         uint256[] memory shipmentCodes = registry.getShipmentCodes();
         assertEq(shipmentCodes.length, 1);
         assertEq(shipmentCodes[0], 1);
@@ -44,13 +37,6 @@ contract ShipmentFactoryTest is Test {
         locations[0] = "Location1";
         locations[1] = "Location2";
         vm.expectRevert(abi.encodeWithSelector(AccessControl.Unauthorized.selector, address(0x123)));
-        shipmentFactory.createShipment(
-            addr2,
-            addr1,
-            100,
-            block.timestamp,
-            block.timestamp + 86400,
-            locations
-        );
+        shipmentFactory.createShipment(addr2, addr1, 100, block.timestamp, block.timestamp + 86400, locations);
     }
 }

@@ -39,10 +39,7 @@ contract Product is AccessControl {
         sku = _sku;
         name = _name;
         description = _description;
-        allowedWeatherCondition = AllowedWeatherCondition(
-            _minCTemperature,
-            _maxCTemperature
-        );
+        allowedWeatherCondition = AllowedWeatherCondition(_minCTemperature, _maxCTemperature);
     }
 
     /// @notice Get the details of the product
@@ -53,27 +50,13 @@ contract Product is AccessControl {
     function getProductDetails()
         public
         view
-        returns (
-            uint256,
-            string memory,
-            string memory,
-            AllowedWeatherCondition memory
-        )
+        returns (uint256, string memory, string memory, AllowedWeatherCondition memory)
     {
-        return (
-            sku,
-            name,
-            description,
-            allowedWeatherCondition
-        );
+        return (sku, name, description, allowedWeatherCondition);
     }
 
     /// @notice Get the allowed weather condition for the product
-    function getAllowedWeatherCondition()
-        external
-        view
-        returns (AllowedWeatherCondition memory)
-    {
+    function getAllowedWeatherCondition() external view returns (AllowedWeatherCondition memory) {
         return allowedWeatherCondition;
     }
 }

@@ -10,13 +10,13 @@ import "./Registry.sol";
 /// @author Quan Hoang
 
 contract ProductFactory is AccessControl {
-    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */ 
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     Registry public registry; // The registry to register the new product contract
 
-    /* --------------------------------------------- EVENTS --------------------------------------------- */ 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */
     event ProductCreated(uint256 sku); // Events to announce whenever a product is created
 
-    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */
     /// @notice constructor to create the product factory
     /// @param _registryAddress the address of the registry
     constructor(address _registryAddress) AccessControl(msg.sender) {
@@ -32,21 +32,14 @@ contract ProductFactory is AccessControl {
     function createProduct(
         string memory _name,
         string memory _description,
-        uint256 _minCTemperature,  
+        uint256 _minCTemperature,
         uint256 _maxCTemperature
     ) public onlyManager returns (address) {
         // length of SKU array + 1 = new SKU
         uint256 newSKU = registry.getProductSKUs().length + 1;
 
-        Product newProduct = new Product(
-            msg.sender,
-            newSKU,
-            _name,
-            _description,
-            _minCTemperature,  
-            _maxCTemperature
-        );
-        
+        Product newProduct = new Product(msg.sender, newSKU, _name, _description, _minCTemperature, _maxCTemperature);
+
         registry.registerProduct(address(newProduct), newSKU);
         emit ProductCreated(newSKU);
 

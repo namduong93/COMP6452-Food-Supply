@@ -18,6 +18,7 @@ contract Shipment is AccessControl {
         VERIFIED_BY_DELIVERER, // Shipment has been verified by deliverer/manager side that it has been successfully delivered
         FINALIZED, // Shipment has been finalized. No action could be taken hereafter.
         CANCELLED // Shipment is cancelled. No action could be taken hereafter
+
     }
 
     uint256 shipmentCode; // Code/Identifier for the shipment
@@ -44,20 +45,15 @@ contract Shipment is AccessControl {
     /* --------------------------------------------- MODIFIERS --------------------------------------------- */
     // @notice check whether the shipment has been finalized/cancelled
     modifier notFinal() {
-        if (
-            status == ShipmentStatus.FINALIZED ||
-            status == ShipmentStatus.CANCELLED
-        ) {
+        if (status == ShipmentStatus.FINALIZED || status == ShipmentStatus.CANCELLED) {
             revert ShipmentFinalizedOrCancelled(status);
         }
         _;
     }
     // @notice check whether the shipment has not been succesfully delivered
+
     modifier notDelivered() {
-        if (
-            status == ShipmentStatus.DELIVERED ||
-            status == ShipmentStatus.VERIFIED_BY_DELIVERER
-        ) {
+        if (status == ShipmentStatus.DELIVERED || status == ShipmentStatus.VERIFIED_BY_DELIVERER) {
             revert ShipmentDelivered(status);
         }
         _;
@@ -65,10 +61,7 @@ contract Shipment is AccessControl {
 
     // @notice check whether the shipment has been succesfully delivered
     modifier delivered() {
-        if (
-            status == ShipmentStatus.PREPARING ||
-            status == ShipmentStatus.SHIPPING
-        ) {
+        if (status == ShipmentStatus.PREPARING || status == ShipmentStatus.SHIPPING) {
             revert ShipmentNotDelivered(status);
         }
         _;
@@ -103,10 +96,7 @@ contract Shipment is AccessControl {
         string[] memory _locations
     ) AccessControl(_manager) {
         // Verify whether specified production/expiry date is valid
-        if (
-            _productProdDate > block.timestamp ||
-            _productExpDate < block.timestamp
-        ) {
+        if (_productProdDate > block.timestamp || _productExpDate < block.timestamp) {
             revert InvalidTimestamp("Production or Expiry Date is invalid.");
         }
 
@@ -173,19 +163,14 @@ contract Shipment is AccessControl {
     }
 
     /// @notice Check if current weather condition has not gone outside of allowed weather conditions
-    function checkWithinAllowedWeatherCondition()
-        public view
-        notDelivered
-        notFinal
-        returns (bool)
-    {
+    function checkWithinAllowedWeatherCondition() public view notDelivered notFinal returns (bool) {
         // Hard-coded example temperature value to verify temperature
         Product product = Product(productAddress);
         uint256 temp_c = 20;
 
         if (
-            temp_c < product.getAllowedWeatherCondition().minCTemperature ||
-            temp_c > product.getAllowedWeatherCondition().maxCTemperature
+            temp_c < product.getAllowedWeatherCondition().minCTemperature
+                || temp_c > product.getAllowedWeatherCondition().maxCTemperature
         ) {
             return false;
         }
@@ -241,16 +226,13 @@ contract Shipment is AccessControl {
     }
 
     // @notice Helper function to get the string representation of the status
-    function printShipmentStatus(ShipmentStatus _status)
-        private
-        pure
-        returns (string memory)
-    {
+    function printShipmentStatus(ShipmentStatus _status) private pure returns (string memory) {
         if (_status == ShipmentStatus.PREPARING) return "Preparing";
         if (_status == ShipmentStatus.SHIPPING) return "Shipping";
         if (_status == ShipmentStatus.DELIVERED) return "Delivered";
-        if (_status == ShipmentStatus.VERIFIED_BY_DELIVERER)
+        if (_status == ShipmentStatus.VERIFIED_BY_DELIVERER) {
             return "Verified by Deliverer";
+        }
         if (_status == ShipmentStatus.FINALIZED) return "Finalized";
         return "";
     }

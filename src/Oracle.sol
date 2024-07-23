@@ -15,7 +15,6 @@ import {LinkTokenInterface} from "@chainlink/src/v0.8/shared/interfaces/LinkToke
  * THIS EXAMPLE USES UN-AUDITED CODE.
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
-
 contract Oracle is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
@@ -46,17 +45,11 @@ contract Oracle is ChainlinkClient, ConfirmedOwner {
      * data, then multiply by 1000000000000000000 (to remove decimal places from data).
      */
     function requestVolumeData() public returns (bytes32 requestId) {
-        Chainlink.Request memory req = _buildChainlinkRequest(
-            jobId,
-            address(this),
-            this.fulfill.selector
-        );
+        Chainlink.Request memory req = _buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
 
         // Set the URL to perform the GET request on
-        req._add(
-            "get",
-            "" /// API KEY TO REQUEST ///
-        );
+        req._add("get", "");
+        /// API KEY TO REQUEST ///
 
         // Set the path to find the desired data in the API response, where the response format is:
         // {"RAW":
@@ -82,10 +75,7 @@ contract Oracle is ChainlinkClient, ConfirmedOwner {
     /**
      * Receive the response in the form of uint256
      */
-    function fulfill(
-        bytes32 _requestId,
-        int256 _volume
-    ) public recordChainlinkFulfillment(_requestId) {
+    function fulfill(bytes32 _requestId, int256 _volume) public recordChainlinkFulfillment(_requestId) {
         emit RequestVolume(_requestId, _volume);
         volume = _volume;
     }
@@ -95,10 +85,6 @@ contract Oracle is ChainlinkClient, ConfirmedOwner {
      */
     function withdrawLink() public onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(_chainlinkTokenAddress());
-        require(
-            link.transfer(msg.sender, link.balanceOf(address(this))),
-            "Unable to transfer"
-        );
+        require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
     }
 }
-
