@@ -1,147 +1,188 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.19;
+
+import "./AccessControl.sol";
+import "./Product.sol";
 
 /// @title Contract to manage shipments with scheduled location updates in seconds
 /// @author
 
-contract Shipment {
-    address public manager; // Contract manager
-
-    // Data type to store shipment details
-    struct ShipmentDetails {
-        uint256 id; // Shipment ID
-        string deliveryName; // Delivery name for the shipment
-        address productAddress; // Address to a deployed contract for a Product with all its details
-        uint256 productQuantity; // The quantity of the product being shipped/ordered
-        string location; // Current location of the shipment
-        string targetLocation; // Target location to move to
-        uint256 moveTimestamp; // Timestamp in seconds when the location should change
+contract Shipment is AccessControl {
+    /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
+    // Shipment status
+    enum ShipmentStatus {
+        PREPARING, // Shipment is being prepared to be shipped to the next location
+        SHIPPING, // Shipment is currently being shipped
+        DELIVERED, // Shipment has, on theory, arrived at the final destination
+        VERIFIED_BY_DELIVERER, // Shipment has been verified by deliverer/manager side that it has been successfully delivered
+        FINALIZED
     }
 
-    uint256 public shipmentCount; // Counter to keep track of shipment IDs
-    mapping(uint256 => ShipmentDetails) public shipments; // Mapping to store shipment details by ID
+    string shipmentCode; // Code/Identifier for the shipment
+    address receiver; // Adress of the receiver of the shipment
+    address productAddress; // Address to a deployed contract for a Product with all its details
+    uint256 productQuantity; // The quantity of the product being shipped
+    uint256 currentLocation; // Current location of the shipment expressed as an index
+    string[] locations; // Starting point, delivery points, and final destination for the shipment
+    ShipmentStatus status; // Current status of the shipment
+    uint256 moveTimestamp; // Timestamp in seconds when the shipment should arrive at the next location
 
+    /* --------------------------------------------- EVENTS --------------------------------------------- */
     // Define an event to be emitted when a shipment's location is updated
-    event LocationUpdated(uint256 id, string newLocation);
+    event LocationUpdated(string newLocation);
 
-    /// @notice Constructor to set the manager of the contract
-    constructor() {
-        manager = msg.sender;
-        shipmentCount = 0; // Initialize shipment counter
-    }
+    /* --------------------------------------------- ERRORS --------------------------------------------- */
+    error ShipmentDelivered(ShipmentStatus); // error indicating that the shipment has been already delivered
+    error ShipmentNotDelivered(ShipmentStatus); // error indicating that the shipment has not been delivered
+    error NotReceiver(address); // error indicating that this is not the receiver
 
-    /// @notice Create a new shipment with a delivery name and location
-    /// @param _deliveryName Name of the delivery for the shipment
-    /// @param _location Location of the shipment
-    /// @return The ID of the newly created shipment
-    function createShipment(
-        string memory _deliveryName,
-        address _productAddress,
-        uint _productQuantity,
-        string memory _location
-    ) public returns (uint256) {
-        require(
-            msg.sender == manager,
-            "Only the manager can create a shipment"
-        ); // Access control
-
-        shipmentCount++;
-        uint256 shipmentId = shipmentCount; // Use a simple incrementing ID
-
-        // Fill in the shipment details
-        shipments[shipmentId] = ShipmentDetails(
-            shipmentId,
-            _deliveryName,
-            _productAddress,
-            _productQuantity,
-            _location,
-            "",
-            0
-        );
-        
-        return shipmentId;
-    }
-
-    /// @notice Move the shipment to a new location after a specified number of seconds
-    /// @param _shipmentId ID of the shipment to update
-    /// @param _seconds Number of seconds after which the location should change
-    /// @param _targetLocation Target location to move to
-    function moveShipment(
-        uint256 _shipmentId,
-        uint256 _seconds,
-        string memory _targetLocation
-    ) public {
-        require(
-            msg.sender == manager,
-            "Only the manager can move the shipment"
-        ); // Access control
-        require(
-            _shipmentId > 0 && _shipmentId <= shipmentCount,
-            "Shipment ID is invalid"
-        );
-
-        uint256 temp_c = 20; // Hard-coded temperature value for this example
-        require(
-            temp_c >= 15 && temp_c <= 25,
-            "Temperature is not suitable for departure"
-        );
-
-        ShipmentDetails storage shipment = shipments[_shipmentId];
-        shipment.targetLocation = _targetLocation;
-        shipment.moveTimestamp = block.timestamp + _seconds; // Add the delay in seconds to the current timestamp
-
-        // Emit event to log the update
-        emit LocationUpdated(_shipmentId, shipment.location);
-    }
-
-    /// @notice Check if the location should be updated and perform the update if necessary
-    /// @param _shipmentId ID of the shipment to check
-    function updateShipmentLocation(uint256 _shipmentId) public {
-        require(
-            _shipmentId > 0 && _shipmentId <= shipmentCount,
-            "Shipment ID is invalid"
-        );
-
-        ShipmentDetails storage shipment = shipments[_shipmentId];
-
+    /* --------------------------------------------- MODIFIERS --------------------------------------------- */
+    // @notice check whether the shipment has not been succesfully delivered
+    modifier notDelivered() {
         if (
-            block.timestamp >= shipment.moveTimestamp &&
-            shipment.moveTimestamp != 0
+            status == ShipmentStatus.DELIVERED ||
+            status == ShipmentStatus.VERIFIED_BY_DELIVERER ||
+            status == ShipmentStatus.FINALIZED
         ) {
-            shipment.location = shipment.targetLocation;
-            shipment.targetLocation = ""; // Clear target location after update
-            shipment.moveTimestamp = 0; // Reset timestamp
-            emit LocationUpdated(_shipmentId, shipment.location); // Emit event
+            revert ShipmentDelivered(status);
         }
+        _;
     }
 
-    /// @notice Get the details of a shipment by ID
-    /// @param _shipmentId ID of the shipment
-    /// @return deliveryName The delivery name of the shipment
-    /// @return location The current location of the shipment
-    /// @return targetLocation The target location to move to
-    /// @return moveTimestamp The timestamp in seconds when the location should change
-    function getShipmentDetails(uint256 _shipmentId)
+    // @notice check whether the shipment has been succesfully delivered
+    modifier delivered() {
+        if (status != ShipmentStatus.DELIVERED || status != ShipmentStatus.VERIFIED_BY_DELIVERER) {
+            revert ShipmentNotDelivered(status);
+        }
+        _;
+    }
+
+    // @notice check whether the shipment has not been succesfully delivered
+    modifier onlyReceiver() {
+        if (msg.sender != receiver) {
+            revert NotReceiver(msg.sender);
+        }
+        _;
+    }
+
+    /* --------------------------------------------- FUNCTIONS --------------------------------------------- */
+    /// @notice constructor to create a new shipment
+    /// @param _manager manager of the shipment
+    /// @param _shipmentCode code for the shipment
+    /// @param _receiver receiver of the shipment
+    /// @param _productAddress address of the product being shipped
+    /// @param _productQuantity quantity of the product being shipped
+    /// @param _locations starting point, delivery points, and final destination for the shipment
+    constructor(
+        address _manager,
+        string memory _shipmentCode,
+        address _receiver,
+        address _productAddress,
+        uint256 _productQuantity,
+        string[] memory _locations
+    ) AccessControl(_manager) {
+        shipmentCode = _shipmentCode;
+        receiver = _receiver;
+        productAddress = _productAddress;
+        productQuantity = _productQuantity;
+        locations = _locations;
+        currentLocation = 0; // Starting point so index 0
+        status = ShipmentStatus.PREPARING;
+        moveTimestamp = 0; // 0 also means the shipment is not being shipped so there is no "expected" arrive time
+    }
+
+    /// @notice Get the details of the shipment
+    /// @return _shipmentCode code for the shipment
+    /// @return _productAddress address of the contract for the product
+    /// @return _currentLocation current location of the shipment
+    /// @return _locations starting point, delivery points, and final destination for the shipment
+    /// @return _status current status of shipment
+    //  @return _moveTimestamp time at which the shipment arrives at the next location
+    function getShipmentDetails()
         public
         view
         returns (
-            string memory deliveryName,
-            string memory location,
-            string memory targetLocation,
-            uint256 moveTimestamp
+            string memory,
+            address,
+            address,
+            uint256,
+            string memory,
+            string[] memory,
+            string memory,
+            uint256
         )
     {
-        require(
-            _shipmentId > 0 && _shipmentId <= shipmentCount,
-            "Shipment ID is invalid"
-        );
-        ShipmentDetails memory details = shipments[_shipmentId];
         return (
-            details.deliveryName,
-            details.location,
-            details.targetLocation,
-            details.moveTimestamp
+            shipmentCode,
+            receiver,
+            productAddress,
+            productQuantity,
+            locations[currentLocation],
+            locations,
+            printShipmentStatus(status),
+            moveTimestamp
         );
+    }
+
+    /// @notice Move the shipment to a new location after a specified number of seconds
+    /// @param _seconds Number of seconds after which the location should change
+    function moveShipment(uint256 _seconds) public onlyManager notDelivered {
+        // Hard-coded example temperature value to verify temperature
+        Product product = Product(productAddress);
+        uint256 temp_c = 20;
+        require(
+            temp_c >= product.getAllowedWeatherCondition().minCTemperature &&
+                temp_c <= product.getAllowedWeatherCondition().maxCTemperature,
+            "Temperature is not suitable for departure"
+        );
+
+        status = ShipmentStatus.SHIPPING;
+        moveTimestamp = block.timestamp + _seconds; // Add the delay in seconds to the current timestamp
+
+        emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
+    }
+
+    /// @notice Check if the location should be updated and perform the update if necessary
+    function updateShipmentLocation() public notDelivered {
+        if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
+            // Move current location to the next one
+            currentLocation++;
+
+            if (currentLocation == locations.length - 1) {
+                status = ShipmentStatus.DELIVERED;
+            } else {
+                status = ShipmentStatus.PREPARING;
+            }
+
+            moveTimestamp = 0; // Reset timestamp
+
+            emit LocationUpdated(locations[currentLocation]); // Emit event to log the update
+        }
+    }
+
+    /// @notice Verify/Announce that the shipment has been delivered to the final destination by the deliverer/manager side (if receiver has not already done so)
+    function delivererVerify() public onlyManager delivered {
+        status = ShipmentStatus.VERIFIED_BY_DELIVERER;
+    }
+
+    /// @notice Verify that the shipment has been delivered to the final destination by the receiver side
+    function receiverVerify() public onlyReceiver delivered {
+        status = ShipmentStatus.FINALIZED;
+    }
+
+    // @notice Helper function to get the string representation of the status
+    function printShipmentStatus(ShipmentStatus _status)
+        public
+        pure
+        returns (string memory)
+    {
+        if (_status == ShipmentStatus.PREPARING) return "Preparing";
+        if (_status == ShipmentStatus.SHIPPING) return "Shipping";
+        if (_status == ShipmentStatus.DELIVERED) return "Delivered";
+        if (_status == ShipmentStatus.VERIFIED_BY_DELIVERER)
+            return "Verified by Deliverer";
+        if (_status == ShipmentStatus.FINALIZED) return "Finalized";
+        return "";
     }
 }
