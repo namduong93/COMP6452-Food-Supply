@@ -17,6 +17,13 @@ https://book.getfoundry.sh/
 
 If you are using VSCode, when open terminal use Git Bash terminal to run the below commands.
 
+### Download Foundry
+```shell
+$ curl -L https://foundry.paradigm.xyz | bash
+$ source ~/.bashrc 
+$ foundryup
+```
+
 ### Build
 
 ```shell
