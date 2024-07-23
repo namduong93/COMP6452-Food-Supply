@@ -16,7 +16,8 @@ contract Shipment is AccessControl {
         SHIPPING, // Shipment is currently being shipped
         DELIVERED, // Shipment has, on theory, arrived at the final destination
         VERIFIED_BY_DELIVERER, // Shipment has been verified by deliverer/manager side that it has been successfully delivered
-        FINALIZED
+        FINALIZED, // Shipment has been finalized. No action could be taken hereafter.
+        CANCELLED // Shipment is cancelled. No action could be taken hereafter
     }
 
     uint256 shipmentCode; // Code/Identifier for the shipment
@@ -55,7 +56,10 @@ contract Shipment is AccessControl {
 
     // @notice check whether the shipment has been succesfully delivered
     modifier delivered() {
-        if (status != ShipmentStatus.DELIVERED || status != ShipmentStatus.VERIFIED_BY_DELIVERER) {
+        if (
+            status != ShipmentStatus.DELIVERED ||
+            status != ShipmentStatus.VERIFIED_BY_DELIVERER
+        ) {
             revert ShipmentNotDelivered(status);
         }
         _;
@@ -90,7 +94,10 @@ contract Shipment is AccessControl {
         string[] memory _locations
     ) AccessControl(_manager) {
         // Verify whether specified production/expiry date is valid
-        if (_productProdDate > block.timestamp || _productExpDate < block.timestamp) {
+        if (
+            _productProdDate > block.timestamp ||
+            _productExpDate < block.timestamp
+        ) {
             revert InvalidTimestamp("Production or Expire Date is invalid.");
         }
 
@@ -147,17 +154,42 @@ contract Shipment is AccessControl {
         );
     }
 
-    /// @notice Move the shipment to a new location after a specified number of seconds
-    /// @param _seconds Number of seconds after which the location should change
-    function moveShipment(uint256 _seconds) public onlyManager notDelivered {
+    /// @notice Check if current timestamp/date has not exceeded the specified expiry date of the product
+    function checkNotExpired() public view notDelivered returns (bool) {
+        if (block.timestamp > productExpDate) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// @notice Check if current weather condition has not gone outside of allowed weather conditions
+    function checkWithinAllowedWeatherCondition()
+        public view
+        notDelivered
+        returns (bool)
+    {
         // Hard-coded example temperature value to verify temperature
         Product product = Product(productAddress);
         uint256 temp_c = 20;
-        require(
-            temp_c >= product.getAllowedWeatherCondition().minCTemperature &&
-                temp_c <= product.getAllowedWeatherCondition().maxCTemperature,
-            "Temperature is not suitable for departure"
-        );
+
+        if (
+            temp_c < product.getAllowedWeatherCondition().minCTemperature ||
+            temp_c > product.getAllowedWeatherCondition().maxCTemperature
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// @notice Move the shipment to a new location after a specified number of seconds
+    /// @param _seconds Number of seconds after which the location should change
+    function moveShipment(uint256 _seconds) public onlyManager notDelivered {
+        if (!checkNotExpired() || !checkWithinAllowedWeatherCondition()) {
+            cancelShipment();
+            return;
+        }
 
         status = ShipmentStatus.SHIPPING;
         moveTimestamp = block.timestamp + _seconds; // Add the delay in seconds to the current timestamp
@@ -193,9 +225,14 @@ contract Shipment is AccessControl {
         status = ShipmentStatus.FINALIZED;
     }
 
+    /// @notice Cancel the shipment
+    function cancelShipment() public onlyManager onlyReceiver notDelivered {
+        status = ShipmentStatus.CANCELLED;
+    }
+
     // @notice Helper function to get the string representation of the status
     function printShipmentStatus(ShipmentStatus _status)
-        public
+        private
         pure
         returns (string memory)
     {
