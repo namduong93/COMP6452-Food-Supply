@@ -19,10 +19,12 @@ contract Shipment is AccessControl {
         FINALIZED
     }
 
-    string shipmentCode; // Code/Identifier for the shipment
+    uint256 shipmentCode; // Code/Identifier for the shipment
     address receiver; // Adress of the receiver of the shipment
     address productAddress; // Address to a deployed contract for a Product with all its details
     uint256 productQuantity; // The quantity of the product being shipped
+    uint256 productProdDate; // The date when this batch product is produced in UNIX
+    uint256 productExpDate; // The date when this batch of product will expire in UNIX
     uint256 currentLocation; // Current location of the shipment expressed as an index
     string[] locations; // Starting point, delivery points, and final destination for the shipment
     ShipmentStatus status; // Current status of the shipment
@@ -33,6 +35,7 @@ contract Shipment is AccessControl {
     event LocationUpdated(string newLocation);
 
     /* --------------------------------------------- ERRORS --------------------------------------------- */
+    error InvalidTimestamp(string); // error indicating that the UNIX timestamp does not correspond to certain requirements
     error ShipmentDelivered(ShipmentStatus); // error indicating that the shipment has been already delivered
     error ShipmentNotDelivered(ShipmentStatus); // error indicating that the shipment has not been delivered
     error NotReceiver(address); // error indicating that this is not the receiver
@@ -73,19 +76,30 @@ contract Shipment is AccessControl {
     /// @param _receiver receiver of the shipment
     /// @param _productAddress address of the product being shipped
     /// @param _productQuantity quantity of the product being shipped
+    /// @param _productProdDate the date when this batch of product is produced
+    /// @param _productExpDate the date when this batch of product will expire
     /// @param _locations starting point, delivery points, and final destination for the shipment
     constructor(
         address _manager,
-        string memory _shipmentCode,
+        uint256 _shipmentCode,
         address _receiver,
         address _productAddress,
         uint256 _productQuantity,
+        uint256 _productProdDate,
+        uint256 _productExpDate,
         string[] memory _locations
     ) AccessControl(_manager) {
+        // Verify whether specified production/expiry date is valid
+        if (_productProdDate > block.timestamp || _productExpDate < block.timestamp) {
+            revert InvalidTimestamp("Production or Expire Date is invalid.");
+        }
+
         shipmentCode = _shipmentCode;
         receiver = _receiver;
         productAddress = _productAddress;
         productQuantity = _productQuantity;
+        productProdDate = _productProdDate;
+        productExpDate = _productExpDate;
         locations = _locations;
         currentLocation = 0; // Starting point so index 0
         status = ShipmentStatus.PREPARING;
@@ -95,6 +109,10 @@ contract Shipment is AccessControl {
     /// @notice Get the details of the shipment
     /// @return _shipmentCode code for the shipment
     /// @return _productAddress address of the contract for the product
+    /// @return _receiver address of the receiver for the product
+    /// @return _productQuantity the quantity of the product
+    /// @return _productProdDate the production date of the product
+    /// @return _productExpDate the expire date of the product
     /// @return _currentLocation current location of the shipment
     /// @return _locations starting point, delivery points, and final destination for the shipment
     /// @return _status current status of shipment
@@ -103,9 +121,11 @@ contract Shipment is AccessControl {
         public
         view
         returns (
-            string memory,
+            uint256,
             address,
             address,
+            uint256,
+            uint256,
             uint256,
             string memory,
             string[] memory,
@@ -118,6 +138,8 @@ contract Shipment is AccessControl {
             receiver,
             productAddress,
             productQuantity,
+            productProdDate,
+            productExpDate,
             locations[currentLocation],
             locations,
             printShipmentStatus(status),
