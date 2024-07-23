@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
-import "../src/AccessControl.sol";
+import {Test} from "forge-std/Test.sol";
+import {StdCheats} from "forge-std/StdCheats.sol";
+import {AccessControl} from "../src/AccessControl.sol";
 
-contract AccessControlTest is Test {
+contract AccessControlTest is StdCheats, Test {
     AccessControl accessControl;
+
     address owner;
     address addr1 = address(0x123);
     address addr2 = address(0x456);
@@ -21,15 +23,15 @@ contract AccessControlTest is Test {
         assertEq(managers[1], addr1);
     }
 
-    function testAddManagerFail() public {
+    function testAddManagerUnauthorized() public {
         vm.prank(addr1);
-        vm.expectRevert("Unauthorized");
+        vm.expectRevert(abi.encodeWithSelector(AccessControl.Unauthorized.selector, addr1));
         accessControl.addManager(addr2);
     }
 
     function testAddManagerAlreadyAdded() public {
         accessControl.addManager(addr1);
-        vm.expectRevert("ManagerAlreadyAdded");
+        vm.expectRevert(abi.encodeWithSelector(AccessControl.ManagerAlreadyAdded.selector, addr1));
         accessControl.addManager(addr1);
     }
 

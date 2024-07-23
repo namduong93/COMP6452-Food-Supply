@@ -15,6 +15,8 @@ https://book.getfoundry.sh/
 
 ## Usage
 
+If you are using VSCode, when open terminal use Git Bash terminal to run the below commands.
+
 ### Build
 
 ```shell
