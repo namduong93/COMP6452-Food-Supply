@@ -37,17 +37,27 @@ contract Shipment is AccessControl {
 
     /* --------------------------------------------- ERRORS --------------------------------------------- */
     error InvalidTimestamp(string); // error indicating that the UNIX timestamp does not correspond to certain requirements
+    error ShipmentFinalizedOrCancelled(ShipmentStatus); // error indicating that there can be no further action done on the shipment
     error ShipmentDelivered(ShipmentStatus); // error indicating that the shipment has been already delivered
     error ShipmentNotDelivered(ShipmentStatus); // error indicating that the shipment has not been delivered
     error NotReceiver(address); // error indicating that this is not the receiver
 
     /* --------------------------------------------- MODIFIERS --------------------------------------------- */
+    // @notice check whether the shipment has been finalized/cancelled
+    modifier notFinal() {
+        if (
+            status == ShipmentStatus.FINALIZED ||
+            status == ShipmentStatus.CANCELLED
+        ) {
+            revert ShipmentFinalizedOrCancelled(status);
+        }
+        _;
+    }
     // @notice check whether the shipment has not been succesfully delivered
     modifier notDelivered() {
         if (
             status == ShipmentStatus.DELIVERED ||
-            status == ShipmentStatus.VERIFIED_BY_DELIVERER ||
-            status == ShipmentStatus.FINALIZED
+            status == ShipmentStatus.VERIFIED_BY_DELIVERER
         ) {
             revert ShipmentDelivered(status);
         }
@@ -155,7 +165,7 @@ contract Shipment is AccessControl {
     }
 
     /// @notice Check if current timestamp/date has not exceeded the specified expiry date of the product
-    function checkNotExpired() public view notDelivered returns (bool) {
+    function checkNotExpired() public view notDelivered notFinal returns (bool) {
         if (block.timestamp > productExpDate) {
             return false;
         }
@@ -167,6 +177,7 @@ contract Shipment is AccessControl {
     function checkWithinAllowedWeatherCondition()
         public view
         notDelivered
+        notFinal
         returns (bool)
     {
         // Hard-coded example temperature value to verify temperature
@@ -185,7 +196,7 @@ contract Shipment is AccessControl {
 
     /// @notice Move the shipment to a new location after a specified number of seconds
     /// @param _seconds Number of seconds after which the location should change
-    function moveShipment(uint256 _seconds) public onlyManager notDelivered {
+    function moveShipment(uint256 _seconds) public onlyManager notDelivered notFinal {
         if (!checkNotExpired() || !checkWithinAllowedWeatherCondition()) {
             cancelShipment();
             return;
@@ -198,7 +209,7 @@ contract Shipment is AccessControl {
     }
 
     /// @notice Check if the location should be updated and perform the update if necessary
-    function updateShipmentLocation() public notDelivered {
+    function updateShipmentLocation() public notDelivered notFinal {
         if (block.timestamp >= moveTimestamp && moveTimestamp != 0) {
             // Move current location to the next one
             currentLocation++;
@@ -216,17 +227,17 @@ contract Shipment is AccessControl {
     }
 
     /// @notice Verify/Announce that the shipment has been delivered to the final destination by the deliverer/manager side (if receiver has not already done so)
-    function delivererVerify() public onlyManager delivered {
+    function delivererVerify() public onlyManager delivered notFinal {
         status = ShipmentStatus.VERIFIED_BY_DELIVERER;
     }
 
     /// @notice Verify that the shipment has been delivered to the final destination by the receiver side
-    function receiverVerify() public onlyReceiver delivered {
+    function receiverVerify() public onlyReceiver delivered notFinal {
         status = ShipmentStatus.FINALIZED;
     }
 
     /// @notice Cancel the shipment
-    function cancelShipment() public onlyManager onlyReceiver notDelivered {
+    function cancelShipment() public onlyManager onlyReceiver notDelivered notFinal {
         status = ShipmentStatus.CANCELLED;
     }
 
