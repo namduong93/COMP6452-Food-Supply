@@ -40,7 +40,6 @@ contract Shipment is AccessControl {
     error ShipmentFinalizedOrCancelled(ShipmentStatus); // error indicating that there can be no further action done on the shipment
     error ShipmentDelivered(ShipmentStatus); // error indicating that the shipment has been already delivered
     error ShipmentNotDelivered(ShipmentStatus); // error indicating that the shipment has not been delivered
-    error NotReceiver(address); // error indicating that this is not the receiver
 
     /* --------------------------------------------- MODIFIERS --------------------------------------------- */
     // @notice check whether the shipment has been finalized/cancelled
@@ -67,18 +66,18 @@ contract Shipment is AccessControl {
     // @notice check whether the shipment has been succesfully delivered
     modifier delivered() {
         if (
-            status != ShipmentStatus.DELIVERED ||
-            status != ShipmentStatus.VERIFIED_BY_DELIVERER
+            status == ShipmentStatus.PREPARING ||
+            status == ShipmentStatus.SHIPPING
         ) {
             revert ShipmentNotDelivered(status);
         }
         _;
     }
 
-    // @notice check whether the shipment has not been succesfully delivered
+    // @notice check whether the sender is the receiver
     modifier onlyReceiver() {
         if (msg.sender != receiver) {
-            revert NotReceiver(msg.sender);
+            revert Unauthorized(msg.sender);
         }
         _;
     }
@@ -237,7 +236,7 @@ contract Shipment is AccessControl {
     }
 
     /// @notice Cancel the shipment
-    function cancelShipment() public onlyManager onlyReceiver notDelivered notFinal {
+    function cancelShipment() public onlyManager notDelivered notFinal {
         status = ShipmentStatus.CANCELLED;
     }
 
