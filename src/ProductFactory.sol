@@ -14,7 +14,7 @@ contract ProductFactory is AccessControl {
     Registry public registry; // The registry to register the new product contract
 
     /* --------------------------------------------- EVENTS --------------------------------------------- */ 
-    event ProductCreated(string sku); // Events to announce whenever a product is created
+    event ProductCreated(uint256 sku); // Events to announce whenever a product is created
 
     /* --------------------------------------------- FUNCTIONS --------------------------------------------- */ 
     /// @notice constructor to create the product factory
@@ -24,36 +24,31 @@ contract ProductFactory is AccessControl {
     }
 
     /// @notice create a new product and log its contract into the registry
-    /// @param _sku stock keeping unit
     /// @param _name name of the product
     /// @param _description description of the product
-    /// @param _productionDate date the product is produced in UNIX
-    /// @param _expiryDate date the product is expired in UNIX
     /// @param _minCTemperature minimum allowed temperature in C
     /// @param _maxCTemperature maximum allowed temperature in C
     /// @return The address for the contract of the new product
     function createProduct(
-        string memory _sku,
         string memory _name,
         string memory _description,
-        uint _productionDate,
-        uint _expiryDate,
         uint256 _minCTemperature,  
         uint256 _maxCTemperature
     ) public onlyManager returns (address) {
+        // length of SKU array + 1 = new SKU
+        uint256 newSKU = registry.getProductSKUs().length + 1;
+
         Product newProduct = new Product(
             msg.sender,
-            _sku,
+            newSKU,
             _name,
             _description,
-            _productionDate,
-            _expiryDate,
             _minCTemperature,  
             _maxCTemperature
         );
         
-        registry.registerProduct(address(newProduct), _sku);
-        emit ProductCreated(_sku);
+        registry.registerProduct(address(newProduct), newSKU);
+        emit ProductCreated(newSKU);
 
         return address(newProduct);
     }
