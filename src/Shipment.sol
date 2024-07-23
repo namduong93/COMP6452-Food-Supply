@@ -108,7 +108,7 @@ contract Shipment is AccessControl {
             _productProdDate > block.timestamp ||
             _productExpDate < block.timestamp
         ) {
-            revert InvalidTimestamp("Production or Expire Date is invalid.");
+            revert InvalidTimestamp("Production or Expiry Date is invalid.");
         }
 
         shipmentCode = _shipmentCode;
