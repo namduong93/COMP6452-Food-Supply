@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 contract AccessControl {
     /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     // Array for all managers of this contract
+    mapping(address => bool) private managersMap;
     address[] managers;
 
     /* --------------------------------------------- EVENTS --------------------------------------------- */
@@ -17,36 +18,26 @@ contract AccessControl {
     /// @notice constructor to create the overall access control to the product/shipment
     /// @param _manager first manager/creator of the contract
     constructor(address _manager) {
+        managersMap[_manager] = true;
         managers.push(_manager);
     }
 
     /// @notice modifier to check if sender is a manager
     modifier onlyManager() {
-        bool isManager = false;
-
-        for (uint256 i = 0; i < managers.length; i++) {
-            if (managers[i] == msg.sender) {
-                isManager = true;
-                break;
-            }
-        }
-
-        if (!isManager) {
+        if (!managersMap[msg.sender]) {
             revert Unauthorized(msg.sender);
         }
-
         _;
     }
 
     /// @notice add a new manager to the contract
     /// @param _manager new manager/creator of the contract
     function addManager(address _manager) public onlyManager {
-        for (uint256 i = 0; i < managers.length; i++) {
-            if (managers[i] == _manager) {
-                revert ManagerAlreadyAdded(_manager);
-            }
+        if (managersMap[_manager]) {
+            revert ManagerAlreadyAdded(_manager);
         }
-
+        
+        managersMap[_manager] = true;
         managers.push(_manager);
         emit ManagerAdded(_manager);
     }
