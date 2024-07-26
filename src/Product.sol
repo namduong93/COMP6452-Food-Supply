@@ -1,6 +1,6 @@
 /// SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 import "./AccessControl.sol";
 
@@ -11,8 +11,8 @@ contract Product is AccessControl {
     /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
     // Data type to store the allowed weather condition fot this product
     struct AllowedWeatherCondition {
-        uint256 minCTemperature; // Minimum allowed temperature in C
-        uint256 maxCTemperature; // Maximum allowed temperature in C
+        int256 minCTemperature; // Minimum allowed temperature in C
+        int256 maxCTemperature; // Maximum allowed temperature in C
     }
 
     uint256 sku; // Stock-keeping unit for the product
@@ -33,8 +33,8 @@ contract Product is AccessControl {
         uint256 _sku,
         string memory _name,
         string memory _description,
-        uint256 _minCTemperature,
-        uint256 _maxCTemperature
+        int256 _minCTemperature,
+        int256 _maxCTemperature
     ) AccessControl(_manager) {
         sku = _sku;
         name = _name;
