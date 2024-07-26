@@ -8,11 +8,11 @@ import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interface
 contract WeatherOracle is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    int256 public temp;
+    uint256 public temp;
     bytes32 private jobId;
     uint256 private fee;
 
-    event RequestTemp(bytes32 indexed requestId, int256 temp);
+    event RequestTemp(bytes32 indexed requestId, uint256 temp);
 
     constructor() ConfirmedOwner(msg.sender) {
         _setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
@@ -29,7 +29,9 @@ contract WeatherOracle is ChainlinkClient, ConfirmedOwner {
         Chainlink.Request memory req = _buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
 
         // Set the URL to perform the GET request on
-        string memory apiLink = string.concat("https://api.weatherapi.com/v1/current.json?key=5d438b53bf2d40378b253430241507&q=", "", location);
+        string memory apiLink = string.concat(
+            "https://api.weatherapi.com/v1/current.json?key=5d438b53bf2d40378b253430241507&q=", "", location
+        );
         req._add("get", apiLink);
 
         req._add("path", data); // Chainlink nodes 1.0.0 and later support this format
@@ -45,7 +47,7 @@ contract WeatherOracle is ChainlinkClient, ConfirmedOwner {
     /**
      * Receive the response in the form of int256
      */
-    function fulfill(bytes32 _requestId, int256 _temp) public recordChainlinkFulfillment(_requestId) {
+    function fulfill(bytes32 _requestId, uint256 _temp) public recordChainlinkFulfillment(_requestId) {
         emit RequestTemp(_requestId, _temp);
         temp = _temp;
     }
@@ -56,5 +58,10 @@ contract WeatherOracle is ChainlinkClient, ConfirmedOwner {
     function withdrawLink() public onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(_chainlinkTokenAddress());
         require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
+    }
+
+    /// @notice Get temp from the api
+    function getTemp() external view returns (uint256) {
+        return temp;
     }
 }
