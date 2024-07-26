@@ -32,8 +32,8 @@ contract ProductFactory is AccessControl {
     function createProduct(
         string memory _name,
         string memory _description,
-        uint256 _minCTemperature,
-        uint256 _maxCTemperature
+        int256 _minCTemperature,
+        int256 _maxCTemperature
     ) public onlyManager returns (address) {
         // length of SKU array + 1 = new SKU
         uint256 newSKU = registry.getProductSKUs().length + 1;
