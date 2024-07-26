@@ -29,7 +29,9 @@ contract WeatherOracle is ChainlinkClient, ConfirmedOwner {
         Chainlink.Request memory req = _buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
 
         // Set the URL to perform the GET request on
-        string memory apiLink = string.concat("https://api.weatherapi.com/v1/current.json?key=5d438b53bf2d40378b253430241507&q=", "", location);
+        string memory apiLink = string.concat(
+            "https://api.weatherapi.com/v1/current.json?key=5d438b53bf2d40378b253430241507&q=", "", location
+        );
         req._add("get", apiLink);
 
         req._add("path", data); // Chainlink nodes 1.0.0 and later support this format
