@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 /// @title A contract registry to keep track of individual contracts for different products and shipments
 /// @author Quan Hoang
