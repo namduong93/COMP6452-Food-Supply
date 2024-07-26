@@ -37,7 +37,8 @@ contract ShipmentFactory is AccessControl {
         uint256 _productQuantity,
         uint256 _productProdDate,
         uint256 _productExpDate,
-        string[] memory _locations
+        string[] memory _locations,
+        address _weatherOracleAddress
     ) public onlyManager returns (address) {
         // block timestamp as shipment code
         uint256 timestamp = block.timestamp;
@@ -50,7 +51,8 @@ contract ShipmentFactory is AccessControl {
             _productQuantity,
             _productProdDate,
             _productExpDate,
-            _locations
+            _locations,
+            _weatherOracleAddress
         );
 
         registry.registerShipment(address(newShipment), timestamp);
