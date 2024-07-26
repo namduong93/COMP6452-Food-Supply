@@ -3,5 +3,6 @@ cache/
 .DS_Store
 node_modules/
 src/artifacts
+.deps/
 .states/
 out/
