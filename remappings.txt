@@ -1,1 +1,1 @@
-@chainlink/=lib/chainlink/contracts/
+@chainlink/=lib/chainlink/
