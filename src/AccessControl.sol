@@ -36,7 +36,7 @@ contract AccessControl {
         if (managersMap[_manager]) {
             revert ManagerAlreadyAdded(_manager);
         }
-        
+
         managersMap[_manager] = true;
         managers.push(_manager);
         emit ManagerAdded(_manager);

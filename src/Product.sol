@@ -43,11 +43,7 @@ contract Product is AccessControl {
     /// @return name of the product
     /// @return description of the product
     /// @return the last recorded weather condition where the product is shipped
-    function getProductDetails()
-        public
-        view
-        returns (uint256, string memory, string memory, uint256, uint256)
-    {
+    function getProductDetails() public view returns (uint256, string memory, string memory, uint256, uint256) {
         return (sku, name, description, minCTemperature, maxCTemperature);
     }
 }
