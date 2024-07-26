@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 import "./AccessControl.sol";
 import "./Product.sol";
+import "./Oracle.sol";
 
 /// @title Contract to manage shipments with scheduled location updates in seconds
 /// @author
@@ -31,6 +32,7 @@ contract Shipment is AccessControl {
     string[] locations; // Starting point, delivery points, and final destination for the shipment
     ShipmentStatus status; // Current status of the shipment
     uint256 moveTimestamp; // Timestamp in seconds when the shipment should arrive at the next location
+    address weatherOracleAddress; // Address of the weather oracle
 
     /* --------------------------------------------- EVENTS --------------------------------------------- */
     // Define an event to be emitted when a shipment's location is updated
@@ -85,6 +87,7 @@ contract Shipment is AccessControl {
     /// @param _productProdDate the date when this batch of product is produced
     /// @param _productExpDate the date when this batch of product will expire
     /// @param _locations starting point, delivery points, and final destination for the shipment
+    /// @param _weatherOracleAddress address of the weather oracle
     constructor(
         address _manager,
         uint256 _shipmentCode,
@@ -93,7 +96,8 @@ contract Shipment is AccessControl {
         uint256 _productQuantity,
         uint256 _productProdDate,
         uint256 _productExpDate,
-        string[] memory _locations
+        string[] memory _locations,
+        address _weatherOracleAddress
     ) AccessControl(_manager) {
         // Verify whether specified production/expiry date is valid
         if (_productProdDate > block.timestamp || _productExpDate < block.timestamp) {
@@ -110,6 +114,7 @@ contract Shipment is AccessControl {
         currentLocation = 0; // Starting point so index 0
         status = ShipmentStatus.PREPARING;
         moveTimestamp = 0; // 0 also means the shipment is not being shipped so there is no "expected" arrive time
+        weatherOracleAddress = _weatherOracleAddress;
     }
 
     /// @notice Get the details of the shipment
@@ -136,7 +141,8 @@ contract Shipment is AccessControl {
             string memory,
             string[] memory,
             string memory,
-            uint256
+            uint256,
+            address
         )
     {
         return (
@@ -149,7 +155,8 @@ contract Shipment is AccessControl {
             locations[currentLocation],
             locations,
             printShipmentStatus(status),
-            moveTimestamp
+            moveTimestamp,
+            weatherOracleAddress
         );
     }
 
@@ -163,14 +170,17 @@ contract Shipment is AccessControl {
     }
 
     /// @notice Check if current weather condition has not gone outside of allowed weather conditions
-    function checkWithinAllowedWeatherCondition() public view notDelivered notFinal returns (bool) {
-        // Hard-coded example temperature value to verify temperature
+    function checkWithinAllowedWeatherCondition() public notDelivered notFinal returns (bool) {
         Product product = Product(productAddress);
-        uint256 temp_c = 20;
+
+        // Get temperature of current location from weather oracle
+        WeatherOracle weather = WeatherOracle(weatherOracleAddress);
+        weather.requestCurrTemp(locations[currentLocation], "current,temp_c");
+        int256 temp_c = weather.getTemp();
 
         if (
-            temp_c < product.getAllowedWeatherCondition().minCTemperature
-                || temp_c > product.getAllowedWeatherCondition().maxCTemperature
+            temp_c < product.getAllowedWeatherCondition().minCTemperature * 10 ** 3
+                || temp_c > product.getAllowedWeatherCondition().maxCTemperature * 10 ** 3
         ) {
             return false;
         }
