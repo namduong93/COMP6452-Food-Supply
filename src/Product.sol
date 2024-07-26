@@ -9,16 +9,11 @@ import "./AccessControl.sol";
 
 contract Product is AccessControl {
     /* --------------------------------------------- DATA FIELDS --------------------------------------------- */
-    // Data type to store the allowed weather condition fot this product
-    struct AllowedWeatherCondition {
-        uint256 minCTemperature; // Minimum allowed temperature in C
-        uint256 maxCTemperature; // Maximum allowed temperature in C
-    }
-
     uint256 sku; // Stock-keeping unit for the product
     string name; // Name of the product
     string description; // Description of the product
-    AllowedWeatherCondition allowedWeatherCondition; // The allowed weather condition for this product
+    uint256 minCTemperature; // Minimum allowed temperature in C
+    uint256 maxCTemperature; // Maximum allowed temperature in C
 
     /* --------------------------------------------- FUNCTIONS --------------------------------------------- */
     /// @notice constructor to create a product
@@ -39,7 +34,8 @@ contract Product is AccessControl {
         sku = _sku;
         name = _name;
         description = _description;
-        allowedWeatherCondition = AllowedWeatherCondition(_minCTemperature, _maxCTemperature);
+        minCTemperature = _minCTemperature;
+        maxCTemperature = _maxCTemperature;
     }
 
     /// @notice Get the details of the product
@@ -50,13 +46,8 @@ contract Product is AccessControl {
     function getProductDetails()
         public
         view
-        returns (uint256, string memory, string memory, AllowedWeatherCondition memory)
+        returns (uint256, string memory, string memory, uint256, uint256)
     {
-        return (sku, name, description, allowedWeatherCondition);
-    }
-
-    /// @notice Get the allowed weather condition for the product
-    function getAllowedWeatherCondition() external view returns (AllowedWeatherCondition memory) {
-        return allowedWeatherCondition;
+        return (sku, name, description, minCTemperature, maxCTemperature);
     }
 }

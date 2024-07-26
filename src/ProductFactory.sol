@@ -30,8 +30,8 @@ contract ProductFactory is AccessControl {
     /// @param _maxCTemperature maximum allowed temperature in C
     /// @return The address for the contract of the new product
     function createProduct(
-        string memory _name,
-        string memory _description,
+        string calldata _name,
+        string calldata _description,
         uint256 _minCTemperature,
         uint256 _maxCTemperature
     ) public onlyManager returns (address) {
