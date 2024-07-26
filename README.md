@@ -10,6 +10,8 @@ We use Foundry and Forge to develop our project. Detailed usage can be found bel
 
 ## Usage
 
+If you are using Remix, delete the remappings.txt file so that Oracle.sol compiles correctly.
+
 If you are using VSCode, when open terminal use Git Bash terminal to run the below commands.
 
 ### Download Foundry
@@ -17,6 +19,11 @@ If you are using VSCode, when open terminal use Git Bash terminal to run the bel
 $ curl -L https://foundry.paradigm.xyz | bash
 $ source ~/.bashrc 
 $ foundryup
+```
+
+### (Already downloaded) before usage
+```shell
+$ source ~/.bashrc 
 ```
 
 ### Build
