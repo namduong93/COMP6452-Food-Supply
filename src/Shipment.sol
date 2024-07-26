@@ -176,7 +176,7 @@ contract Shipment is AccessControl {
         // Get temperature of current location from weather oracle
         WeatherOracle weather = WeatherOracle(weatherOracleAddress);
         weather.requestCurrTemp(locations[currentLocation], "current,temp_c");
-        int256 temp_c = weather.getTemp();
+        uint256 temp_c = weather.getTemp();
 
         if (
             temp_c < product.getAllowedWeatherCondition().minCTemperature * 10 ** 3
