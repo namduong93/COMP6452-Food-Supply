@@ -31,8 +31,11 @@ contract = web3.eth.contract(address=product_factory_address, abi=contract_abi)
 
 def get_managers():
     try:
-        # Call the getManagers function
         managers = contract.functions.getManagers().call()
         return [web3.to_checksum_address(manager) for manager in managers]
     except Exception as e:
         raise RuntimeError(f'Error calling getManagers: {e}')
+
+def register():
+    # Implement the register functionality here
+    pass

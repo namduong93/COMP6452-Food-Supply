@@ -1,36 +1,59 @@
-from PyQt5.QtWidgets import QApplication, QPushButton, QVBoxLayout, QWidget, QLabel
-from backend.product_factory import get_managers
-import sys
+from PyQt5.QtWidgets import QApplication, QPushButton, QVBoxLayout, QWidget, QLabel, QStackedWidget
+from frontend.product import ProductPage
+from frontend.shipment import ShipmentPage
+from frontend.oracle import OraclePage
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Product Factory')
 
-        # Create widgets
-        self.layout = QVBoxLayout()
-        self.label = QLabel('Click the button to get managers.')
-        self.button = QPushButton('Get Managers')
+        self.stack = QStackedWidget()
+        self.main_layout = QVBoxLayout()
+        self.main_page = QWidget()
+        self.product_page = ProductPage(self)
+        self.shipment_page = ShipmentPage(self)
+        self.oracle_page = OraclePage(self)
 
-        # Add widgets to layout
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.button)
-        self.setLayout(self.layout)
+        self.init_main_page()
 
-        # Connect button click event
-        self.button.clicked.connect(self.on_button_click)
+        self.stack.addWidget(self.main_page)
+        self.stack.addWidget(self.product_page)
+        self.stack.addWidget(self.shipment_page)
+        self.stack.addWidget(self.oracle_page)
 
-    def on_button_click(self):
-        try:
-            # Call the get_managers function from the backend
-            managers = get_managers()
-            # Update the label with the result
-            self.label.setText(f"Managers: {', '.join(managers)}")
-        except Exception as e:
-            self.label.setText(f"Error: {str(e)}")
+        self.main_layout.addWidget(self.stack)
+        self.setLayout(self.main_layout)
+        self.show()
+
+    def init_main_page(self):
+        layout = QVBoxLayout()
+        product_button = QPushButton("Product")
+        shipment_button = QPushButton("Shipment")
+        oracle_button = QPushButton("Oracle")
+
+        product_button.clicked.connect(self.show_product_page)
+        shipment_button.clicked.connect(self.show_shipment_page)
+        oracle_button.clicked.connect(self.show_oracle_page)
+
+        layout.addWidget(product_button)
+        layout.addWidget(shipment_button)
+        layout.addWidget(oracle_button)
+        self.main_page.setLayout(layout)
+
+    def show_product_page(self):
+        self.stack.setCurrentWidget(self.product_page)
+
+    def show_shipment_page(self):
+        self.stack.setCurrentWidget(self.shipment_page)
+
+    def show_oracle_page(self):
+        self.stack.setCurrentWidget(self.oracle_page)
 
 def run_gui():
-    app = QApplication(sys.argv)
+    app = QApplication([])
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    app.exec_()
+
+if __name__ == "__main__":
+    run_gui()
