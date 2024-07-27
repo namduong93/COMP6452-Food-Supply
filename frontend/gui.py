@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
 from frontend.product import ProductPage
+from frontend.shipment import ShipmentPage  # Import the new ShipmentPage class
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -33,8 +34,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.product_page)
 
     def show_shipment_page(self):
-        # Implement shipment page
-        pass
+        self.shipment_page = ShipmentPage(main_window=self)  # Create and display the ShipmentPage
+        self.setCentralWidget(self.shipment_page)
 
     def show_oracle_page(self):
         # Implement oracle page
