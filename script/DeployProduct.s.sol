@@ -8,6 +8,8 @@ import {ProductFactory} from "../src/ProductFactory.sol";
 import {Product} from "../src/Product.sol";
 
 contract DeployProduct is Script {
+    function test() public {} // Ignore test/coverage
+
     function run() public {
         uint256 delivererPrivateKey = vm.envUint("DELIVERER_PRIVATE_KEY");
 

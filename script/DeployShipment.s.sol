@@ -11,11 +11,12 @@ import {ShipmentFactory} from "../src/ShipmentFactory.sol";
 import {Shipment} from "../src/Shipment.sol";
 
 contract DeployShipment is Script {
+    function test() public {} // Ignore test/coverage
+
     function run() public {
         uint256 delivererPrivateKey = vm.envUint("DELIVERER_PRIVATE_KEY");
 
         address receiverAddress = vm.envAddress("RECEIVER_ADDRESS");
-        address oracleAddress = vm.envAddress("ORACLE_ADDRESS");
 
         // Deploy Registry
         vm.startBroadcast(delivererPrivateKey);
@@ -46,7 +47,7 @@ contract DeployShipment is Script {
         locations[1] = "Melbourne";
 
         address shipmentAddress = shipmentFactory.createShipment(
-            receiverAddress, productAddress, 100, block.timestamp, block.timestamp + 30 days, locations, oracleAddress
+            receiverAddress, productAddress, 100, block.timestamp, block.timestamp + 30 days, locations, address(0x789)
         );
 
         Shipment shipment = Shipment(shipmentAddress);

@@ -49,3 +49,13 @@ $ forge fmt
 ```shell
 $ forge script script/<SCRIPT_NAME> --fork-url <SEPOLIA_TESTNET_LINK> --broadcast --via-ir
 ```
+
+## Test Coverage
+
+Oracle.sol and the Oracle contract cannot be tested in general because it requires a deployed contract on the main Sepolia testnet with LINK tokens (required for Chainlink) in its balance.
+
+### All unit tests
+![alt text](image/unit_tests.png)
+
+### Coverage
+![alt text](image/test_coverage.png)
