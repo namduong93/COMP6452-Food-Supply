@@ -14,14 +14,15 @@ contract DeployProduct is Script {
         // Deploy Registry
         vm.startBroadcast(delivererPrivateKey);
         Registry registry = new Registry();
-        
+
         // Deploy ProductFactory
         ProductFactory productFactory = new ProductFactory(address(registry));
 
         // Deploy Product
         address productAddress = productFactory.createProduct("Egg", "An egg", 10, 30);
         Product product = Product(productAddress);
-        (uint256 _sku, string memory _name, string memory _desc, uint256 _minTemp, uint256 _maxTemp) = product.getProductDetails();
+        (uint256 _sku, string memory _name, string memory _desc, uint256 _minTemp, uint256 _maxTemp) =
+            product.getProductDetails();
         console.logUint(_sku);
         console.logString(_name);
         console.logString(_desc);

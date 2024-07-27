@@ -15,7 +15,7 @@ contract MockOracle {
         // Mock implementation for testing
     }
 
-    function getTemp() public view returns (uint256) {
+    function getTemp() public pure returns (uint256) {
         // Mock implementation for testing
         return 20000; // Example: 25.0°C in the required format
     }
