@@ -23,6 +23,15 @@ contract_abi = [
         "payable": False,
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "registry",
+        "outputs": [{"name": "", "type": "address"}],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
 
@@ -36,6 +45,9 @@ def get_managers():
     except Exception as e:
         raise RuntimeError(f'Error calling getManagers: {e}')
 
-def register():
-    # Implement the register functionality here
-    pass
+def view_registry():
+    try:
+        registry_address = contract.functions.registry().call()
+        return web3.to_checksum_address(registry_address)
+    except Exception as e:
+        raise RuntimeError(f'Error calling view_registry: {e}')

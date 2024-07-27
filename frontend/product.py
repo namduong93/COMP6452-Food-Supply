@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTextEdit
-from contract_interactions.product_factory import get_managers, register
+from contract_interactions.product_factory import get_managers, view_registry
 from utils.formatter import format_list_as_lines
 
 class ProductPage(QWidget):
@@ -7,12 +7,12 @@ class ProductPage(QWidget):
         super().__init__(parent)
         self.main_window = main_window
         self.layout = QVBoxLayout()
-        
+
         self.get_manager_button = QPushButton("Get Manager")
         self.get_manager_button.clicked.connect(self.display_managers)
-        
-        self.register_button = QPushButton("Register")
-        self.register_button.clicked.connect(self.register_product)
+
+        self.view_registry_button = QPushButton("View Registry")
+        self.view_registry_button.clicked.connect(self.view_registry)
 
         self.back_button = QPushButton("Back")
         self.back_button.clicked.connect(self.go_back)
@@ -21,7 +21,7 @@ class ProductPage(QWidget):
         self.result_text_edit.setReadOnly(True)
 
         self.layout.addWidget(self.get_manager_button)
-        self.layout.addWidget(self.register_button)
+        self.layout.addWidget(self.view_registry_button)
         self.layout.addWidget(self.result_text_edit)
         self.layout.addWidget(self.back_button)
         self.setLayout(self.layout)
@@ -34,13 +34,13 @@ class ProductPage(QWidget):
         except Exception as e:
             self.result_text_edit.setHtml(f"<b>Error:</b> {str(e)}")
 
-    def register_product(self):
+    def view_registry(self):
         try:
-            result = register()
-            self.result_text_edit.setHtml(f"<b>Registered:</b> {result}")
+            registry_address = view_registry()
+            self.result_text_edit.setHtml(f"<b>Registry Address:</b><br>{registry_address}")
         except Exception as e:
             self.result_text_edit.setHtml(f"<b>Error:</b> {str(e)}")
-            
+
     def go_back(self):
         if self.main_window:
             self.main_window.show_main_page()
