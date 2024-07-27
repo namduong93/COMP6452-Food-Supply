@@ -45,6 +45,20 @@ contract_abi = [
         "payable": False,
         "stateMutability": "nonpayable",
         "type": "function"
+    },
+    {
+        "constant": False,
+        "inputs": [
+            {"name": "_name", "type": "string"},
+            {"name": "_description", "type": "string"},
+            {"name": "_minCTemperature", "type": "uint256"},
+            {"name": "_maxCTemperature", "type": "uint256"}
+        ],
+        "name": "createProduct",
+        "outputs": [{"name": "", "type": "address"}],
+        "payable": False,
+        "stateMutability": "nonpayable",
+        "type": "function"
     }
 ]
 
@@ -92,3 +106,36 @@ def add_manager(manager_address):
         return tx_receipt
     except Exception as e:
         raise RuntimeError(f'Error calling addManager: {e}')
+    
+def create_product(name, description, min_temp, max_temp):
+    try:
+        private_key = os.getenv('PRIVATE_KEY')
+        account = web3.eth.account.from_key(private_key)
+
+        # Prepare transaction
+        nonce = web3.eth.get_transaction_count(account.address)
+        tx = {
+            'chainId': 11155111,  # Sepolia Testnet Chain ID
+            'gas': 2000000,
+            'gasPrice': web3.to_wei('50', 'gwei'),
+            'nonce': nonce,
+            'to': product_factory_address,
+            'data': contract.encodeABI(
+                fn_name='createProduct',
+                args=[name, description, min_temp, max_temp]
+            )
+        }
+
+        # Sign transaction
+        signed_tx = web3.eth.account.sign_transaction(tx, private_key)
+
+        # Send transaction
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+
+        # Return only the transaction hash
+        return tx_receipt.transactionHash.hex()
+    except Exception as e:
+        raise RuntimeError(f'Error calling createProduct: {e}')
