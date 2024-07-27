@@ -55,7 +55,7 @@ contract ShipmentFactory is AccessControl {
             _weatherOracleAddress
         );
 
-        registry.registerShipment(address(newShipment), timestamp);
+        registry.registerShipment(address(newShipment));
         emit ShipmentCreated(timestamp);
 
         return address(newShipment);

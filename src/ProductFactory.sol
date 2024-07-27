@@ -30,17 +30,24 @@ contract ProductFactory is AccessControl {
     /// @param _maxCTemperature maximum allowed temperature in C
     /// @return The address for the contract of the new product
     function createProduct(
-        string calldata _name,
-        string calldata _description,
+        string memory _name,
+        string memory _description,
         uint256 _minCTemperature,
         uint256 _maxCTemperature
     ) public onlyManager returns (address) {
         // length of SKU array + 1 = new SKU
-        uint256 newSKU = registry.getProductSKUs().length + 1;
+        uint256 newSKU = block.timestamp;
 
-        Product newProduct = new Product(msg.sender, newSKU, _name, _description, _minCTemperature, _maxCTemperature);
+        Product newProduct = new Product(
+            msg.sender,
+            newSKU,
+            _name,
+            _description,
+            _minCTemperature,
+            _maxCTemperature
+        );
 
-        registry.registerProduct(address(newProduct), newSKU);
+        registry.registerProduct(address(newProduct));
         emit ProductCreated(newSKU);
 
         return address(newProduct);
