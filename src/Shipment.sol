@@ -37,6 +37,7 @@ contract Shipment is AccessControl {
     /* --------------------------------------------- EVENTS --------------------------------------------- */
     // Define an event to be emitted when a shipment's location is updated
     event LocationUpdated(string newLocation);
+    event WeatherChecked(uint256 currentTemp, bool);
 
     /* --------------------------------------------- ERRORS --------------------------------------------- */
     error InvalidTimestamp(string); // error indicating that the UNIX timestamp does not correspond to certain requirements
@@ -174,6 +175,8 @@ contract Shipment is AccessControl {
         WeatherOracle weather = WeatherOracle(weatherOracleAddress);
         weather.requestCurrTemp(locations[currentLocation], "current,temp_c");
         uint256 temp_c = weather.getTemp();
+
+        emit WeatherChecked(temp_c, (temp_c >= _minCTemperature * 10 ** 3 && temp_c <= _maxCTemperature * 10 ** 3));
 
         return (temp_c >= _minCTemperature * 10 ** 3 && temp_c <= _maxCTemperature * 10 ** 3);
     }

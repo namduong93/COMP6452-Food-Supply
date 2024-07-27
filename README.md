@@ -3,10 +3,13 @@
 We use Foundry and Forge to develop our project. Detailed usage can be found below.
 
 ## Contracts
-- (Weather) Oracle: 0x71d5f126bb92368c89b0469aa3d967db14ff18d8
-- Registry: 0x0057e6e38c4720ad121eda1220f9db3ed314511b
-- ProductFactory: 0xfbc9dcf337278bf941031821aeae62ce9af620dc
-- ShipmentFactory: 0xbaa363a60589f41a2ed41a8ed3210f4eef90010d
+- (Weather) Oracle  : 0x71d5f126bb92368c89b0469aa3d967db14ff18d8
+- Registry          : 0x97202d6077445d2bBDb494f25AEA21C8D5d81f0b
+- ProductFactory    : 0x4396B646812D390ecd5E1Ef10baE75f2767B86d8
+- ShipmentFactory   : 0x12794500025955d645a78f639CdF02CFDDFeb5cE
+
+- Example Product (Egg)  : 0xA8c84D8F79F28acB57D5f869FBc88b5c61703790
+- Example Shipment (Egg) : 0x43c26B15aeaE9e9c1F679d8e0C413C9e7aB86adE
 
 ## Usage
 
