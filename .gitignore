@@ -6,3 +6,6 @@ src/artifacts
 .deps/
 .states/
 out/
+.env
+.gas-snapshot
+broadcast/

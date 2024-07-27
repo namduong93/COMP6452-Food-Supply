@@ -43,3 +43,9 @@ $ forge test
 ```shell
 $ forge fmt
 ```
+
+### Run Script
+
+```shell
+$ forge script script/<SCRIPT_NAME> --fork-url <SEPOLIA_TESTNET_LINK> --broadcast --via-ir
+```
