@@ -16,17 +16,26 @@ class ShipmentPage(QWidget):
         # Create Shipment Form
         self.form_layout = QFormLayout()
 
-        self.name_input = QLineEdit()
-        self.form_layout.addRow(QLabel("Shipment Name:"), self.name_input)
+        self.receiver_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Receiver Address:"), self.receiver_input)
 
-        self.description_input = QLineEdit()
-        self.form_layout.addRow(QLabel("Description:"), self.description_input)
+        self.product_address_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Product Address:"), self.product_address_input)
 
-        self.origin_input = QLineEdit()
-        self.form_layout.addRow(QLabel("Origin:"), self.origin_input)
+        self.product_quantity_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Product Quantity:"), self.product_quantity_input)
 
-        self.destination_input = QLineEdit()
-        self.form_layout.addRow(QLabel("Destination:"), self.destination_input)
+        self.product_prod_date_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Product Production Date:"), self.product_prod_date_input)
+
+        self.product_exp_date_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Product Expiration Date:"), self.product_exp_date_input)
+
+        self.locations_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Locations (comma separated):"), self.locations_input)
+
+        self.weather_oracle_address_input = QLineEdit()
+        self.form_layout.addRow(QLabel("Weather Oracle Address:"), self.weather_oracle_address_input)
 
         self.create_shipment_button = QPushButton("Create Shipment")
         self.create_shipment_button.clicked.connect(self.create_shipment)
@@ -69,17 +78,25 @@ class ShipmentPage(QWidget):
         self.setLayout(self.layout)
 
     def create_shipment(self):
-        name = self.name_input.text()
-        description = self.description_input.text()
-        origin = self.origin_input.text()
-        destination = self.destination_input.text()
+        receiver = self.receiver_input.text()
+        product_address = self.product_address_input.text()
+        try:
+            product_quantity = int(self.product_quantity_input.text())
+            product_prod_date = int(self.product_prod_date_input.text())
+            product_exp_date = int(self.product_exp_date_input.text())
+        except ValueError:
+            self.result_text_edit.setHtml("<b>Error:</b> Product Quantity, Production Date, and Expiration Date must be integers.")
+            return
 
-        if not name or not description or not origin or not destination:
-            self.result_text_edit.setHtml("<b>Error:</b> All fields must be filled.")
+        locations = [loc.strip() for loc in self.locations_input.text().split(',') if loc.strip()]
+        weather_oracle_address = self.weather_oracle_address_input.text()
+
+        if not receiver or not product_address or not weather_oracle_address:
+            self.result_text_edit.setHtml("<b>Error:</b> Receiver Address, Product Address, and Weather Oracle Address should not be empty.")
             return
 
         try:
-            tx_receipt = create_shipment(name, description, origin, destination)
+            tx_receipt = create_shipment(receiver, product_address, product_quantity, product_prod_date, product_exp_date, locations, weather_oracle_address)
             self.result_text_edit.setHtml(f"<b>Shipment Created:</b><br>{tx_receipt}")
         except Exception as e:
             self.result_text_edit.setHtml(f"<b>Error:</b> {str(e)}")

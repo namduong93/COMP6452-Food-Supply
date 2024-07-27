@@ -46,13 +46,16 @@ contract_abi = [
         "stateMutability": "nonpayable",
         "type": "function"
     },
-    {
+     {
         "constant": False,
         "inputs": [
-            {"name": "_name", "type": "string"},
-            {"name": "_description", "type": "string"},
-            {"name": "_origin", "type": "string"},
-            {"name": "_destination", "type": "string"}
+            {"name": "_receiver", "type": "address"},
+            {"name": "_productAddress", "type": "address"},
+            {"name": "_productQuantity", "type": "uint256"},
+            {"name": "_productProdDate", "type": "uint256"},
+            {"name": "_productExpDate", "type": "uint256"},
+            {"name": "_locations", "type": "string[]"},
+            {"name": "_weatherOracleAddress", "type": "address"}
         ],
         "name": "createShipment",
         "outputs": [{"name": "", "type": "address"}],
@@ -106,8 +109,8 @@ def add_manager(manager_address):
         return tx_receipt
     except Exception as e:
         raise RuntimeError(f'Error calling addManager: {e}')
-
-def create_shipment(name, description, origin, destination):
+    
+def create_shipment(receiver, product_address, product_quantity, product_prod_date, product_exp_date, locations, weather_oracle_address):
     try:
         private_key = os.getenv('PRIVATE_KEY')
         account = web3.eth.account.from_key(private_key)
@@ -122,7 +125,15 @@ def create_shipment(name, description, origin, destination):
             'to': shipment_factory_address,
             'data': contract.encodeABI(
                 fn_name='createShipment',
-                args=[name, description, origin, destination]
+                args=[
+                    web3.to_checksum_address(receiver),
+                    web3.to_checksum_address(product_address),
+                    product_quantity,
+                    product_prod_date,
+                    product_exp_date,
+                    locations,
+                    web3.to_checksum_address(weather_oracle_address)
+                ]
             )
         }
 
@@ -135,7 +146,7 @@ def create_shipment(name, description, origin, destination):
         # Wait for transaction receipt
         tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
 
-        # Return only the transaction hash
+        # Extract and return product address
         return tx_receipt.transactionHash.hex()
     except Exception as e:
         raise RuntimeError(f'Error calling createShipment: {e}')
