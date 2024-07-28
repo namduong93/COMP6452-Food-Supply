@@ -1,8 +1,10 @@
+# main.py
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
 from frontend.product import ProductPage
 from frontend.shipment import ShipmentPage
 from frontend.registry import RegistryPage
-from frontend.product_detail import ProductDetailPage  # Import the new ProductDetailPage class
+from frontend.product_detail import ProductDetailPage
+from frontend.shipment_detail import ShipmentDetailPage  # Import the new ShipmentDetailPage class
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -28,10 +30,14 @@ class MainWindow(QMainWindow):
         self.product_detail_button = QPushButton("Product Detail")
         self.product_detail_button.clicked.connect(self.show_product_detail_page)
 
+        self.shipment_detail_button = QPushButton("Shipment Detail")
+        self.shipment_detail_button.clicked.connect(self.show_shipment_detail_page)
+
         self.main_layout.addWidget(self.product_button)
         self.main_layout.addWidget(self.shipment_button)
         self.main_layout.addWidget(self.registry_button)
         self.main_layout.addWidget(self.product_detail_button)
+        self.main_layout.addWidget(self.shipment_detail_button)
 
         self.central_widget.setLayout(self.main_layout)
 
@@ -50,6 +56,10 @@ class MainWindow(QMainWindow):
     def show_product_detail_page(self):
         self.product_detail_page = ProductDetailPage(main_window=self)
         self.setCentralWidget(self.product_detail_page)
+
+    def show_shipment_detail_page(self):
+        self.shipment_detail_page = ShipmentDetailPage(main_window=self)
+        self.setCentralWidget(self.shipment_detail_page)
 
 def run_gui():
     app = QApplication([])
