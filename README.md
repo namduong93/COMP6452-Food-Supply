@@ -86,4 +86,5 @@ EXAMPLE_SHIPMENT_ADDRESS=0x43c26B15aeaE9e9c1F679d8e0C413C9e7aB86adE
 $ pip install python-dotenv
 $ pip install web3
 $ pip install PyQt5
+$ python3 script.py
 ```
