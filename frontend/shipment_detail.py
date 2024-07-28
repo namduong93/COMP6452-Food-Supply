@@ -36,6 +36,17 @@ shipment_contract_abi = [
         "payable": False,
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "checkWithinAllowedWeatherCondition",
+        "outputs": [
+            {"name": "", "type": "bool"}
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
 
@@ -56,6 +67,9 @@ class ShipmentDetailPage(QWidget):
         self.get_shipment_details_button = QPushButton("Get Shipment Details")
         self.get_shipment_details_button.clicked.connect(self.get_shipment_details)
 
+        self.check_weather_button = QPushButton("Check Weather Condition")
+        self.check_weather_button.clicked.connect(self.check_weather_condition)
+
         self.result_text_edit = QTextEdit(self)
         self.result_text_edit.setReadOnly(True)
 
@@ -64,6 +78,7 @@ class ShipmentDetailPage(QWidget):
 
         self.layout.addLayout(self.form_layout)
         self.layout.addWidget(self.get_shipment_details_button)
+        self.layout.addWidget(self.check_weather_button)
         self.layout.addWidget(self.result_text_edit)
         self.layout.addWidget(self.back_button)
 
@@ -95,6 +110,22 @@ class ShipmentDetailPage(QWidget):
             )
 
             self.result_text_edit.setHtml(details_html)
+        except Exception as e:
+            self.result_text_edit.setHtml(f"<b>Error:</b> {str(e)}")
+
+    def check_weather_condition(self):
+        shipment_address = self.shipment_address_input.text()
+
+        if not shipment_address:
+            self.result_text_edit.setHtml("<b>Error:</b> Shipment Address should not be empty.")
+            return
+
+        try:
+            shipment_contract = web3.eth.contract(address=web3.to_checksum_address(shipment_address), abi=shipment_contract_abi)
+            is_within_condition = shipment_contract.functions.checkWithinAllowedWeatherCondition().call()
+
+            condition_html = "<b>Weather Condition:</b> " + ("Within Allowed Range" if is_within_condition else "Out of Allowed Range")
+            self.result_text_edit.setHtml(condition_html)
         except Exception as e:
             self.result_text_edit.setHtml(f"<b>Error:</b> {str(e)}")
 
