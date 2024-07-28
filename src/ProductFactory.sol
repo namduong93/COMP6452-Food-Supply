@@ -38,14 +38,7 @@ contract ProductFactory is AccessControl {
         // length of SKU array + 1 = new SKU
         uint256 newSKU = block.timestamp;
 
-        Product newProduct = new Product(
-            msg.sender,
-            newSKU,
-            _name,
-            _description,
-            _minCTemperature,
-            _maxCTemperature
-        );
+        Product newProduct = new Product(msg.sender, newSKU, _name, _description, _minCTemperature, _maxCTemperature);
 
         registry.registerProduct(address(newProduct));
         emit ProductCreated(newSKU);
