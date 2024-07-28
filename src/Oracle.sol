@@ -34,7 +34,7 @@ contract WeatherOracle is ChainlinkClient, ConfirmedOwner {
         );
         req._add("get", apiLink);
 
-        req._add("path", data); // Chainlink nodes 1.0.0 and later support this format
+        req._add("path", data);
 
         // Multiply the result by 1000 to remove decimals
         int256 timesAmount = 10 ** 3;
