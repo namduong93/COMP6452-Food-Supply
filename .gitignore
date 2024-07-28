@@ -9,3 +9,5 @@ out/
 .env
 .gas-snapshot
 broadcast/
+*.pyc
+__pycache__/
