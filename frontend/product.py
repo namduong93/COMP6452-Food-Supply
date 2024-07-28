@@ -85,7 +85,7 @@ class ProductPage(QWidget):
 
         try:
             tx_receipt = create_product(name, description, min_temp, max_temp)
-            self.result_text_edit.setHtml(f"<b>Product Created:</b><br>{tx_receipt}")
+            self.result_text_edit.setHtml(f"<b>Product Created on transaction:</b><br>{tx_receipt}")
         except Exception as e:
             self.result_text_edit.setHtml(f"<b>Error:</b> {str(e)}")
 

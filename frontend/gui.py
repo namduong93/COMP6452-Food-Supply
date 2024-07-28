@@ -21,10 +21,10 @@ class MainWindow(QMainWindow):
         self.registry_button = QPushButton("Registry")
         self.registry_button.clicked.connect(self.show_registry_page)
 
-        self.product_button = QPushButton("Product")
+        self.product_button = QPushButton("Product Factory")
         self.product_button.clicked.connect(self.show_product_page)
 
-        self.shipment_button = QPushButton("Shipment")
+        self.shipment_button = QPushButton("Shipment Factory")
         self.shipment_button.clicked.connect(self.show_shipment_page)
 
         self.product_detail_button = QPushButton("Product Detail")
