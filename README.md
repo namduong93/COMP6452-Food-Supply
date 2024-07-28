@@ -50,10 +50,36 @@ $ forge test
 $ forge fmt
 ```
 
-### Run Script
+### Run Script & Local UI
+Create a .env file in the root directory and add the following line:
+
+```shell
+ETH_RPC_URL=<SEPOLIA_TESTNET_LINK>
+PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+DELIVERER_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+DELIVERER_ADDRESS=<YOUR_ACCOUNT_ADDRESS>
+RECEIVER_PRIVATE_KEY=<ANY_PRIVATE_KEY>
+RECEIVER_ADDRESS=<ANY_ACCOUNT_ADDRESS>
+WEATHER_ORACLE_ADDRESS=0x71d5f126bb92368c89b0469aa3d967db14ff18d8
+REGISTRY_ADDRESS=0x97202d6077445d2bBDb494f25AEA21C8D5d81f0b
+PRODUCT_FACTORY_ADDRESS=0x4396B646812D390ecd5E1Ef10baE75f2767B86d8
+SHIPMENT_FACTORY_ADDRESS=0xe73834B4A307b019e0f8b24fCfBf250cCF754B2c
+```
+
+Script
 
 ```shell
 $ forge script script/<SCRIPT_NAME> --fork-url <SEPOLIA_TESTNET_LINK> --broadcast --via-ir
+```
+
+Local UI
+
+```shell
+$ pip install python-dotenv
+$ pip install web3
+$ pip install PyQt5
+
+$ python3 script.py
 ```
 
 ## Test Coverage
@@ -67,24 +93,3 @@ Oracle.sol and the Oracle contract cannot be tested in general because it requir
 ### Coverage
 
 ![alt text](image/test_coverage.png)
-
-## Run local UI
-
-```shell
-Create a .env file in the root directory and add the following line:
-ETH_RPC_URL=<SEPOLIA_TESTNET_LINK>
-PRIVATE_KEY=<YOUR_PRIVATE_KEY>
-WEATHER_ORACLE_ADDRESS=0x71d5f126bb92368c89b0469aa3d967db14ff18d8
-REGISTRY_ADDRESS=0x97202d6077445d2bBDb494f25AEA21C8D5d81f0b
-PRODUCT_FACTORY_ADDRESS=0x4396B646812D390ecd5E1Ef10baE75f2767B86d8
-SHIPMENT_FACTORY_ADDRESS=0x12794500025955d645a78f639CdF02CFDDFeb5cE
-
-# Example contract addresses
-EXAMPLE_PRODUCT_ADDRESS=0xA8c84D8F79F28acB57D5f869FBc88b5c61703790
-EXAMPLE_SHIPMENT_ADDRESS=0x43c26B15aeaE9e9c1F679d8e0C413C9e7aB86adE
-
-$ pip install python-dotenv
-$ pip install web3
-$ pip install PyQt5
-$ python3 script.py
-```
