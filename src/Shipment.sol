@@ -237,6 +237,7 @@ contract Shipment is AccessControl {
             return "Verified by Deliverer";
         }
         if (_status == ShipmentStatus.FINALIZED) return "Finalized";
+        if (_status == ShipmentStatus.CANCELLED) return "Cancelled";
         return "";
     }
 }

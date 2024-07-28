@@ -7,10 +7,10 @@ We use Foundry and Forge to develop our project. Detailed usage can be found bel
 - (Weather) Oracle : 0x71d5f126bb92368c89b0469aa3d967db14ff18d8
 - Registry : 0x97202d6077445d2bBDb494f25AEA21C8D5d81f0b
 - ProductFactory : 0x4396B646812D390ecd5E1Ef10baE75f2767B86d8
-- ShipmentFactory : 0x12794500025955d645a78f639CdF02CFDDFeb5cE
+- ShipmentFactory : 0xe73834B4A307b019e0f8b24fCfBf250cCF754B2c
 
 - Example Product (Egg) : 0xA8c84D8F79F28acB57D5f869FBc88b5c61703790
-- Example Shipment (Egg) : 0x43c26B15aeaE9e9c1F679d8e0C413C9e7aB86adE
+- Example Shipment (Egg) : 0x7A412F0a973DaE924e3c32E3D78f0D0f34569811
 
 ## Usage
 
