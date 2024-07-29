@@ -18,8 +18,6 @@ contract ShipmentFactoryTest is Test {
     function setUp() public {
         registry = new Registry();
         shipmentFactory = new ShipmentFactory(address(registry));
-        owner = address(this);
-        registry.registerProduct(addr1, 1);
     }
 
     function testCreateShipment() public {
@@ -28,7 +26,7 @@ contract ShipmentFactoryTest is Test {
         locations[1] = "Melbourne";
         address oracle = address(0x71D5F126bB92368c89b0469AA3D967Db14fF18D8);
         shipmentFactory.createShipment(addr2, addr1, 100, block.timestamp, block.timestamp + 86400, locations, oracle);
-        uint256[] memory shipmentCodes = registry.getShipmentCodes();
+        address[] memory shipmentCodes = registry.getShipments();
         assertEq(shipmentCodes.length, 1);
     }
 
@@ -78,7 +76,7 @@ contract ShipmentFactoryTest is Test {
         locations2[1] = "Adelaide";
         shipmentFactory.createShipment(addr2, addr1, 150, block.timestamp, block.timestamp + 172800, locations2, oracle);
 
-        uint256[] memory shipmentCodes = registry.getShipmentCodes();
+        address[] memory shipmentCodes = registry.getShipments();
         assertEq(shipmentCodes.length, 2);
     }
 }

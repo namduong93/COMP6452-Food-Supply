@@ -20,9 +20,8 @@ contract ProductFactoryTest is Test {
 
     function testCreateProduct() public {
         productFactory.createProduct("Product1", "Description1", 0, 100);
-        uint256[] memory skus = registry.getProductSKUs();
+        address[] memory skus = registry.getProducts();
         assertEq(skus.length, 1);
-        assertEq(skus[0], 1);
     }
 
     function testCreateProductFail() public {
